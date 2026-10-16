@@ -1,0 +1,1980 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LoanShield</title>
+<meta name="description" content="LoanShield checks a loan before you take it, flags harassment, keeps tamper-evident evidence, and links rebranded scam apps to the operators behind them.">
+<meta name="theme-color" content="#121212">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%231E8A5A'/%3E%3Cpath d='M16 6l8 3v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V9z' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+/* Layout: alternating ink and paper bands, sticker-style cards tilted 1–4°, one app frame for the toolkit. */
+:root{
+  --ink:#121212;--paper:#F4F6F8;--white:#FFFFFF;
+  --red:#C0392B;--green:#1E8A5A;--amber:#B9770E;
+  --red-lt:#FF8A7A;--green-lt:#5FD39C;--amber-lt:#F5B041;
+  --mute-d:#C9CED4;--mute-l:#4A5058;--card-d:#1E1E1E;--card-d2:#181818;--line-d:#3A3F45;--line-l:#D5DAE0;
+  --sdg1:#E5243B;--sdg8:#A21942;--sdg10:#DD1367;--sdg16:#00689D;
+  --head:"Bookman Old Style","URW Bookman","Bookman",Georgia,"Times New Roman",serif;
+  --body:Calibri,Carlito,"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:14px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:4.5rem}
+body{margin:0;font-family:var(--body);font-size:1.0625rem;line-height:1.55;color:var(--ink);background:var(--paper)}
+img,svg{max-width:100%}
+a{color:inherit}
+h1,h2,h3,h4{font-family:var(--head);font-weight:700;line-height:1.15;margin:0 0 .5em;text-wrap:balance}
+h1{font-size:clamp(2.6rem,8vw,4.8rem)}
+h2{font-size:clamp(1.9rem,4.6vw,3rem)}
+h3{font-size:1.3rem}
+p{margin:0 0 1em}
+.skip{position:absolute;left:-999px;top:0;background:var(--red);color:#fff;padding:.6rem 1rem;z-index:100}
+.skip:focus{left:8px;top:8px}
+:focus-visible{outline:3px solid var(--green-lt);outline-offset:3px}
+.icon{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.num{font-variant-numeric:tabular-nums}
+
+/* bands */
+section{position:relative;padding-block:clamp(3.5rem,8vw,6rem);padding-inline:1.25rem;overflow:hidden}
+.dark{background:var(--ink);color:var(--white)}
+.light{background:var(--paper);color:var(--ink)}
+.wrap{max-width:1080px;margin:0 auto;position:relative;z-index:1}
+.lede{font-size:1.25rem;max-width:40ch}
+.dark .muted{color:var(--mute-d)}.light .muted{color:var(--mute-l)}
+.small{font-size:.9rem}
+.eyebrow{display:inline-block;margin-bottom:1rem}
+.dot{position:absolute;border-radius:50%;pointer-events:none;z-index:0}
+.d-r{background:var(--red)}.d-g{background:var(--green)}.d-w{background:var(--white)}.d-k{background:var(--ink)}
+
+/* stickers */
+.tag{display:inline-block;padding:.28rem .8rem;border-radius:12px;font-weight:700;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--red);transform:rotate(-3deg)}
+.tag.g{background:var(--green)}.tag.k{background:var(--card-d);border:1px solid var(--line-d)}.tag.a{background:var(--amber)}
+.tag.r2{transform:rotate(3deg)}.tag.r3{transform:rotate(-2deg)}.tag.r4{transform:rotate(4deg)}.tag.flat{transform:none}
+.badge{display:inline-grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--red);color:#fff;border:2px solid #fff;font-size:26px;flex:none}
+.badge.g{background:var(--green)}.badge.k{background:var(--ink)}.badge.a{background:var(--amber)}
+.badge.sm{width:40px;height:40px;font-size:19px}
+.badge.lg{width:76px;height:76px;font-size:36px}
+.card{background:var(--white);color:var(--ink);border-radius:var(--r);padding:1.4rem;box-shadow:0 3px 14px rgba(0,0,0,.08)}
+.dark .card{background:var(--card-d);color:var(--white);border:1px solid var(--line-d);box-shadow:none}
+.tilt-l{transform:rotate(-1.2deg)}.tilt-r{transform:rotate(1.2deg)}
+
+/* buttons + fields */
+.btn{font:inherit;display:inline-flex;align-items:center;gap:.55rem;background:var(--red);color:#fff;text-decoration:none;font-weight:700;padding:.7rem 1.2rem;border-radius:12px;border:2px solid transparent;cursor:pointer;transition:transform .1s,filter .15s}
+.btn.g{background:var(--green)}.btn.k{background:var(--ink)}
+.btn.ghost{background:transparent;border-color:currentColor;color:inherit}
+.btn:hover{filter:brightness(1.1)}.btn:active{transform:scale(.97)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;filter:none;transform:none}
+.btn .icon{font-size:1.15em}
+.link-btn{font:inherit;font-weight:700;background:none;border:0;padding:0;color:inherit;text-decoration:underline;cursor:pointer}
+label.f{display:block;font-weight:700;font-size:.92rem;margin-bottom:.3rem}
+.hint{font-weight:400;color:var(--mute-d);font-size:.85rem}
+input[type=text],input[type=number],textarea{font:inherit;font-size:1rem;width:100%;padding:.65rem .8rem;border-radius:10px;border:1px solid var(--line-d);background:var(--card-d2);color:var(--white)}
+textarea{resize:vertical;min-height:6rem;line-height:1.45}
+input:focus-visible,textarea:focus-visible{outline:3px solid var(--green-lt);outline-offset:1px}
+.check{display:flex;gap:.6rem;align-items:flex-start;font-size:.95rem;padding:.35rem 0;cursor:pointer}
+.check input{width:1.1rem;height:1.1rem;margin-top:.2rem;accent-color:var(--red);flex:none}
+
+/* nav */
+nav.top{position:fixed;inset:0 0 auto 0;z-index:50;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:calc(.65rem + env(safe-area-inset-top,0px)) 1.25rem .65rem;background:rgba(18,18,18,.94);backdrop-filter:blur(6px);color:#fff}
+nav.top .logo{font-family:var(--head);font-weight:700;text-decoration:none;display:flex;align-items:center;gap:.5rem;white-space:nowrap}
+nav.top ul{display:none;list-style:none;margin:0;padding:0;gap:1.1rem;font-size:.92rem}
+nav.top a.l{text-decoration:none;color:var(--mute-d);position:relative}
+nav.top a.l:hover,nav.top a.l.active{color:#fff}
+nav.top a.l.active::after{content:"";position:absolute;left:0;right:0;bottom:-.4rem;height:2px;background:var(--green-lt)}
+nav.top .help-pill{font-size:.85rem;font-weight:700;text-decoration:none;background:var(--green);padding:.35rem .8rem;border-radius:10px;white-space:nowrap}
+@media(min-width:960px){nav.top ul{display:flex}}
+
+/* hero */
+#hero{padding-top:clamp(7rem,14vw,9rem)}
+#hero .hl{color:var(--red-lt)}
+.hero-grid{display:grid;gap:2.5rem;align-items:center}
+@media(min-width:960px){.hero-grid{grid-template-columns:1.25fr 1fr}}
+.cta-row{display:flex;flex-wrap:wrap;gap:.8rem;margin:1.6rem 0 2.2rem}
+.statline{display:grid;gap:1.2rem;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));border-top:1px dashed var(--line-d);padding-top:1.4rem}
+.statline b{display:block;font-family:var(--head);font-size:2rem;color:var(--red-lt);font-variant-numeric:tabular-nums}
+.statline span{font-size:.88rem;color:var(--mute-d)}
+.statline a{color:var(--mute-d)}
+.phone{justify-self:center;width:min(300px,100%);background:var(--card-d);border:2px solid var(--line-d);border-radius:32px;padding:1.2rem 1rem 1.4rem;transform:rotate(3deg);box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.phone .notch{width:70px;height:6px;border-radius:6px;background:var(--line-d);margin:0 auto 1rem}
+.phone .bubble{background:#2A2E33;border-radius:14px 14px 14px 4px;padding:.75rem .85rem;font-size:.85rem;line-height:1.4;margin-bottom:.8rem}
+.phone .bubble mark{background:var(--red);color:#fff;border-radius:4px;padding:0 .2rem}
+.phone .flag{display:flex;gap:.6rem;align-items:center;background:rgba(192,57,43,.2);border:1px solid var(--red);border-radius:12px;padding:.6rem .75rem;font-size:.82rem;margin-bottom:.6rem}
+.phone .flag.g{background:rgba(30,138,90,.18);border-color:var(--green)}
+.phone .flag .badge{width:30px;height:30px;font-size:15px;border-width:1px}
+.phone small{display:block;color:var(--mute-d);text-align:center;margin-top:.4rem}
+
+/* problem */
+.tricks{display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:2.4rem 0 2rem}
+.trick{padding-top:1.6rem}
+.trick:nth-child(odd){transform:rotate(-1.4deg)}.trick:nth-child(even){transform:rotate(1.4deg)}
+.trick .badge{margin:-2.6rem 0 .6rem -.4rem}
+.trick h3{font-size:1.1rem;margin-bottom:.3rem}
+.trick p{margin:0;color:var(--mute-l)}
+.insight{display:grid;gap:1.2rem;align-items:center;background:var(--ink);color:#fff;border-radius:var(--r);padding:1.5rem 1.6rem;transform:rotate(-.6deg);margin-bottom:2.2rem}
+@media(min-width:760px){.insight{grid-template-columns:auto 1fr}}
+.insight p{margin:0}
+.insight strong{font-family:var(--head);font-size:1.25rem;display:block;margin-bottom:.25rem}
+.sdgs{display:flex;flex-wrap:wrap;gap:.9rem}
+.sdg{color:#fff;border-radius:var(--r);padding:.65rem 1rem;min-width:140px;text-align:center;line-height:1.2}
+.sdg b{display:block;font-family:var(--head);font-size:1.7rem}
+.sdg small{font-size:.85rem;font-weight:700}
+.sdg:nth-child(1){transform:rotate(-4deg)}.sdg:nth-child(2){transform:rotate(3deg)}.sdg:nth-child(3){transform:rotate(-3deg)}.sdg:nth-child(4){transform:rotate(4deg)}
+.s1{background:var(--sdg1)}.s8{background:var(--sdg8)}.s10{background:var(--sdg10)}.s16{background:var(--sdg16)}
+
+/* toolkit app frame */
+.app{margin-top:2.2rem;border:1px solid var(--line-d);border-radius:20px;background:var(--card-d);overflow:hidden}
+.app-tabs{display:flex;overflow-x:auto;border-bottom:1px solid var(--line-d);background:#161616}
+.app-tab{font:inherit;flex:1 0 auto;display:flex;align-items:center;gap:.6rem;padding:1rem 1.2rem;background:none;border:0;border-bottom:3px solid transparent;color:var(--mute-d);font-weight:700;cursor:pointer;white-space:nowrap}
+.app-tab .step{display:inline-grid;place-items:center;width:1.6rem;height:1.6rem;border-radius:50%;border:1px solid var(--line-d);font-size:.8rem;font-variant-numeric:tabular-nums}
+.app-tab[aria-selected=true]{color:#fff;border-bottom-color:var(--green-lt)}
+.app-tab[aria-selected=true] .step{background:var(--green);border-color:var(--green);color:#fff}
+.app-tab .count{font-size:.75rem;background:var(--red);color:#fff;border-radius:10px;padding:.05rem .45rem}
+.app-panel{padding:clamp(1.1rem,3vw,2rem)}
+.app-panel[hidden]{display:none}
+.tool-grid{display:grid;gap:1.6rem}
+@media(min-width:880px){.tool-grid{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)}}
+.tool-grid>*{min-width:0}
+.field-grid{display:grid;gap:.9rem;grid-template-columns:1fr 1fr}
+.field-grid .full{grid-column:1/-1}
+.panel-intro{max-width:62ch;color:var(--mute-d);margin-bottom:1.3rem}
+.example-note{display:inline-block;font-size:.8rem;font-weight:700;color:var(--amber-lt);margin-bottom:.6rem}
+.result{background:var(--card-d2);border:1px solid var(--line-d);border-radius:var(--r);padding:1.3rem;display:flex;flex-direction:column;gap:1rem}
+.result.ok{border-color:var(--green)}.result.caution,.result.watch{border-color:var(--amber)}.result.danger,.result.high,.result.critical{border-color:var(--red)}
+.big-figure{font-family:var(--head);font-size:clamp(2.4rem,7vw,3.6rem);line-height:1;font-variant-numeric:tabular-nums}
+.big-figure small{font-family:var(--body);font-size:1rem;color:var(--mute-d);font-weight:400;margin-left:.3rem}
+.pill{display:inline-flex;align-items:center;gap:.4rem;font-weight:700;font-size:.85rem;border-radius:999px;padding:.25rem .75rem;color:#fff;background:var(--line-d)}
+.pill.ok,.pill.clear{background:var(--green)}.pill.caution,.pill.watch{background:var(--amber)}.pill.danger,.pill.high{background:var(--red)}.pill.critical{background:#8E1B12}
+.minis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.8rem}
+.mini{border-top:1px dashed var(--line-d);padding-top:.5rem}
+.mini b{display:block;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.mini span{font-size:.82rem;color:var(--mute-d)}
+.flags{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5rem}
+.flags li{display:flex;gap:.6rem;align-items:baseline;font-size:.93rem}
+.sev{flex:none;width:.7rem;height:.7rem;border-radius:50%;background:var(--amber);transform:translateY(.05rem)}
+.sev.s3{background:var(--red)}
+.meter{height:10px;border-radius:10px;background:var(--line-d);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:10px;background:var(--green);transition:width .35s ease}
+.meter.watch i{background:var(--amber)}.meter.high i,.meter.critical i{background:var(--red)}
+.preview{background:#141414;border:1px solid var(--line-d);border-radius:12px;padding:.9rem 1rem;font-size:.95rem;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.preview mark{background:var(--red);color:#fff;border-radius:4px;padding:0 .2rem}
+.chips{display:flex;flex-wrap:wrap;gap:.45rem}
+.chip{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:10px;background:#2E3238;color:#fff;font-size:.85rem;font-weight:700;word-break:break-all}
+.chip .k{color:var(--mute-d);font-weight:400}
+.support{border:1px solid var(--green);background:rgba(30,138,90,.14);border-radius:12px;padding:1rem 1.1rem;font-size:.93rem}
+.support p{margin:0 0 .4rem}
+.support .nums{display:flex;flex-wrap:wrap;gap:.6rem 1.4rem;margin-top:.5rem}
+.support .nums b{font-size:1.15rem;font-variant-numeric:tabular-nums}
+.actions{display:flex;flex-wrap:wrap;gap:.6rem}
+.empty{border:1px dashed var(--line-d);border-radius:var(--r);padding:1.4rem;color:var(--mute-d);text-align:center}
+.vault-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.7rem}
+.vault-item{border:1px solid var(--line-d);border-radius:12px;padding:.8rem 1rem;background:var(--card-d2);display:grid;gap:.35rem}
+.vault-item.bad{border-color:var(--red);background:rgba(192,57,43,.12)}
+.vault-item .meta{display:flex;flex-wrap:wrap;gap:.4rem .9rem;font-size:.8rem;color:var(--mute-d)}
+.vault-item .txt{font-size:.92rem;word-break:break-word}
+.hash{font-family:var(--mono);font-size:.76rem;color:var(--mute-d);word-break:break-all}
+.hash b{color:#fff;font-weight:400}
+.chain-status{display:flex;align-items:center;gap:.6rem;font-weight:700}
+.confirm-row{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;font-size:.9rem}
+#packet-out{min-height:22rem;font-family:var(--mono);font-size:.8rem;line-height:1.5;background:#141414}
+
+/* scam graph */
+.rules{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:2rem 0}
+.rule{display:flex;gap:.8rem;align-items:flex-start}
+.rule p{margin:0;font-size:.95rem;color:var(--mute-l)}
+.rule h3{font-size:1.05rem;margin-bottom:.2rem}
+.ops{display:grid;gap:1.4rem;margin-top:1.4rem}
+.op{padding:1.2rem 1.3rem}
+.op-head{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;justify-content:space-between;margin-bottom:.7rem}
+.op-head h3{margin:0;font-size:1.15rem}
+.op-meta{font-size:.88rem;color:var(--mute-l)}
+.graph-wrap{overflow-x:auto}
+.graph-wrap svg{display:block;min-width:560px;width:100%;height:auto}
+.op.you{outline:3px solid var(--green);outline-offset:3px}
+.dash{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-top:2.2rem}
+.dash .card{padding:1.1rem 1.2rem}
+.dash b{display:block;font-family:var(--head);font-size:2rem;font-variant-numeric:tabular-nums}
+.dash span{font-size:.88rem;color:var(--mute-l)}
+.legend{display:flex;flex-wrap:wrap;gap:.5rem 1.2rem;font-size:.85rem;color:var(--mute-l);margin-top:1rem}
+.legend i{display:inline-block;width:12px;height:12px;margin-right:.35rem;vertical-align:-1px}
+
+/* tables */
+.table-wrap{overflow-x:auto;margin-top:1.8rem;border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.93rem}
+th,td{text-align:left;vertical-align:top;padding:.8rem .9rem;border-bottom:1px solid var(--line-l)}
+.dark th,.dark td{border-bottom-color:var(--line-d)}
+th{font-family:var(--head);font-size:.95rem}
+tr.us td{background:rgba(30,138,90,.12)}
+.dark tr.us td{background:rgba(30,138,90,.2)}
+td .tag{font-size:.7rem}
+
+/* only-us list */
+.only{display:grid;gap:1.2rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:2.2rem}
+.only .card{padding-top:1.2rem}
+.only h3{font-size:1.1rem}
+.only p{margin:0;font-size:.95rem}
+.dark .only p{color:var(--mute-d)}
+
+/* ecosystem */
+.flow{position:relative;margin:2.4rem auto 0}
+.loop{display:none;width:100%;height:auto;color:var(--green);margin-bottom:-.2rem}
+.loop-pill{margin-bottom:1rem}
+.stages{display:grid;grid-template-columns:1fr;gap:.6rem;list-style:none;padding:0;margin:0}
+.stage-btn{font:inherit;color:inherit;background:none;border:2px solid transparent;cursor:pointer;display:flex;align-items:center;gap:1rem;width:100%;padding:.7rem;border-radius:var(--r);text-align:left}
+.stage-btn .nm{font-family:var(--head);font-weight:700;font-size:1.1rem;display:block}
+.stage-btn .sub{display:block;font-size:.9rem;color:var(--mute-l)}
+.stage-btn .badge{transition:transform .2s}
+.stage-btn:hover .badge,.stage-btn[aria-pressed=true] .badge{transform:scale(1.1) rotate(6deg)}
+.stage-btn[aria-pressed=true]{border-color:var(--ink);background:var(--white)}
+.arrow{display:none}
+.stage-panel{margin-top:1.6rem;padding:1.6rem}
+.stage-panel h3{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
+.split{display:grid;gap:1rem;margin-top:1rem}
+.half{padding:1rem 1.1rem;border-radius:12px;border:1px dashed var(--line-l)}
+.half h4{font-family:var(--body);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;margin:0 0 .35rem}
+.half.t h4{color:var(--red)}.half.c h4{color:var(--green)}
+.half p{margin:0}
+.roles{list-style:none;padding:0;margin:1rem 0 0;display:grid;gap:.5rem}
+.roles li{font-size:.94rem}
+.roles b{font-family:var(--head)}
+.sdg-mini{display:inline-block;color:#fff;font-weight:700;font-size:.8rem;border-radius:8px;padding:.15rem .5rem;margin-right:.3rem}
+@media(min-width:760px){
+  .loop{display:block}.loop-pill{display:none}
+  .stages{grid-template-columns:repeat(5,1fr);gap:0}
+  .stages li{position:relative}
+  .stage-btn{flex-direction:column;text-align:center;padding:.7rem .3rem}
+  .stage-btn .nm{font-size:1rem}.stage-btn .sub{font-size:.8rem}
+  .arrow{display:block;position:absolute;top:30px;right:-9px;font-size:1.3rem;z-index:2}
+  .split{grid-template-columns:1fr 1fr}
+}
+
+/* architecture */
+.arch{overflow-x:auto;margin-top:2rem;background:var(--card-d2);border:1px solid var(--line-d);border-radius:var(--r);padding:1rem}
+.arch svg{display:block;min-width:820px;width:100%;height:auto}
+.two{display:grid;gap:1.6rem;margin-top:2.2rem}
+@media(min-width:880px){.two{grid-template-columns:1fr 1fr}}
+.two>*{min-width:0}
+.reqs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.7rem}
+.reqs li{display:grid;grid-template-columns:3.2rem 1fr;gap:.6rem;font-size:.95rem}
+.reqs code{font-family:var(--mono);font-size:.8rem;color:var(--green-lt);padding-top:.15rem}
+.dark .table-wrap table{font-size:.9rem}
+.perm-yes{color:var(--green-lt);font-weight:700}.perm-no{color:var(--red-lt);font-weight:700}
+
+/* validation */
+.val-grid{display:grid;gap:1.6rem;margin-top:2rem}
+@media(min-width:880px){.val-grid{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}}
+.cm{display:grid;grid-template-columns:auto 1fr 1fr;gap:.4rem;font-size:.9rem;max-width:420px}
+.cm div{padding:.7rem;border-radius:10px;text-align:center}
+.cm .h{font-weight:700;color:var(--mute-l);background:none;padding:.3rem}
+.cm .v{font-family:var(--head);font-size:1.6rem;font-variant-numeric:tabular-nums}
+.cm .good{background:rgba(30,138,90,.16)}.cm .badc{background:rgba(192,57,43,.14)}
+.scores{display:flex;flex-wrap:wrap;gap:1.4rem;margin:1.2rem 0}
+.scores b{display:block;font-family:var(--head);font-size:2rem;font-variant-numeric:tabular-nums}
+.scores span{font-size:.85rem;color:var(--mute-l)}
+.miss{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.7rem}
+.miss li{background:var(--white);border-radius:12px;padding:.8rem 1rem;font-size:.92rem;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.miss .why{display:block;color:var(--mute-l);font-size:.85rem;margin-top:.25rem}
+details.set{margin-top:1.4rem}
+details.set summary{cursor:pointer;font-weight:700}
+details.set ol{font-size:.88rem;padding-left:1.4rem;margin-top:.8rem}
+details.set li{margin-bottom:.3rem}
+details.set .lbl{font-weight:700;font-size:.75rem;border-radius:6px;padding:.05rem .35rem;color:#fff;margin-right:.35rem}
+.limits{margin-top:2rem;padding:1.3rem 1.4rem}
+.limits ul{margin:.4rem 0 0;padding-left:1.2rem}
+.limits li{margin-bottom:.4rem}
+
+/* pilot */
+.weeks{display:grid;gap:1.4rem;margin-top:2.2rem;position:relative}
+@media(min-width:860px){.weeks{grid-template-columns:repeat(3,1fr)}}
+.week .tag{position:absolute;top:-.85rem;left:1rem}
+.week{position:relative;padding-top:1.6rem}
+.week ul{margin:.4rem 0 0;padding-left:1.15rem;font-size:.95rem}
+.week li{margin-bottom:.35rem}
+.week:nth-child(1){transform:rotate(-1deg)}.week:nth-child(2){transform:rotate(1deg)}.week:nth-child(3){transform:rotate(-.8deg)}
+.metrics{margin-top:2.2rem}
+
+/* help */
+.help{display:grid;gap:1.1rem;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:2rem}
+.help .card{display:flex;flex-direction:column;gap:.35rem}
+.help .what{font-family:var(--head);font-size:1.7rem;font-variant-numeric:tabular-nums;word-break:break-word}
+.help p{margin:0;font-size:.93rem;color:var(--mute-l)}
+.help .actions{margin-top:.4rem}
+.copy-btn{font:inherit;font-size:.85rem;font-weight:700;cursor:pointer;border:1px solid var(--line-l);background:transparent;border-radius:9px;padding:.3rem .7rem}
+
+/* downloads + footer */
+.dl-grid{display:grid;gap:1.4rem;margin-top:2.2rem}
+@media(min-width:760px){.dl-grid{grid-template-columns:1fr 1fr}}
+.dl{display:flex;flex-direction:column;gap:.5rem;align-items:flex-start}
+.dl:nth-child(1){transform:rotate(-1.2deg)}.dl:nth-child(2){transform:rotate(1.2deg)}
+footer{background:var(--ink);color:#fff;padding:3rem 1.25rem calc(2.5rem + env(safe-area-inset-bottom,0px));position:relative;overflow:hidden;text-align:center}
+footer .sdgs{justify-content:center;margin:1.4rem 0 1.8rem}
+footer p{margin:.3rem 0}
+footer .close{font-family:var(--head);font-weight:700;font-size:1.6rem}
+.sources{max-width:900px;margin:1.6rem auto 0;text-align:left;font-size:.82rem;color:var(--mute-d)}
+.sources ol{padding-left:1.2rem}
+.sources a{color:var(--mute-d)}
+
+/* rights, contact shield, live graph, AI */
+.rights{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.45rem}
+.rights li{display:flex;gap:.6rem;align-items:baseline;font-size:.9rem}
+.law{display:inline-block;flex:none;font-size:.74rem;font-weight:700;letter-spacing:.02em;border:1px solid var(--amber-lt);color:var(--amber-lt);border-radius:8px;padding:.05rem .45rem;white-space:nowrap}
+.law-row{display:flex;flex-wrap:wrap;gap:.35rem}
+.langs{display:flex;flex-wrap:wrap;gap:.5rem}
+.langs label{cursor:pointer;position:relative}
+.langs input{position:absolute;opacity:0;width:1px;height:1px}
+.langs span{display:inline-block;padding:.45rem .9rem;border-radius:10px;border:1px solid var(--line-d);font-weight:700}
+.langs input:checked+span{background:var(--green);border-color:var(--green);color:#fff}
+.langs input:focus-visible+span{outline:3px solid var(--green-lt);outline-offset:2px}
+#sh-out{min-height:13rem}
+.graph-bar{display:flex;flex-wrap:wrap;gap:.8rem 1.2rem;align-items:center;margin-top:.5rem}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:12px;overflow:hidden;transform:rotate(-1deg)}
+.seg button{font:inherit;font-weight:700;font-size:.9rem;padding:.45rem .9rem;border:0;background:var(--white);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+.live-dot{display:inline-block;width:.6rem;height:.6rem;border-radius:50%;background:var(--green);margin-right:.45rem;vertical-align:.05rem}
+@media(prefers-reduced-motion:no-preference){.live-dot{animation:pulse 1.6s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.35}}
+.empty-live{padding:1.6rem;border:2px dashed var(--line-l);box-shadow:none}
+.empty-live p{margin:0;color:var(--mute-l)}
+.ai-box{border-top:1px dashed var(--line-d);padding-top:.9rem}
+.ai-answer{background:#141414;border:1px solid var(--line-d);border-radius:12px;padding:.9rem 1rem}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(1.4rem + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);background:var(--ink);color:#fff;border:1px solid var(--green);padding:.7rem 1.1rem;border-radius:12px;font-weight:700;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:80;max-width:calc(100% - 2rem)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+/*MAC*/
+/* ===== macOS theme (overrides) ===== */
+:root{
+  --ink:#1D1D1F;--paper:#F5F5F7;--white:#FFFFFF;
+  --red:#E5352B;--green:#1F9D55;--amber:#C77700;
+  --red-lt:#D12F26;--green-lt:#1F9D55;--amber-lt:#B86E00;
+  --mute-d:#6E6E73;--mute-l:#6E6E73;--card-d:#FFFFFF;--card-d2:#FBFBFD;--line-d:#D2D2D7;--line-l:#E5E5EA;
+  --head:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Inter,"Segoe UI",Arial,sans-serif;
+  --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Inter,"Segoe UI",Arial,sans-serif;
+  --r:14px;
+}
+body{background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{letter-spacing:-.02em;font-weight:700}
+h1{font-size:clamp(2.6rem,7vw,4.4rem)}
+*:not(.toast){transform:none!important}
+.dot{display:none}
+section.dark,section.light,.dark{background:var(--paper);color:var(--ink)}
+section:nth-of-type(even){background:var(--white)}
+.dark .muted,.light .muted,.muted{color:var(--mute-l)}
+.tag{border-radius:999px;font-size:.72rem;letter-spacing:.04em;padding:.25rem .7rem}
+.tag.k{background:#E8E8ED;color:var(--ink);border:0}
+.badge{border:0;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.card,.dark .card{background:#fff;color:var(--ink);border:1px solid rgba(0,0,0,.06);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06)}
+.btn{border-radius:10px;font-weight:600;padding:.6rem 1.1rem;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+.btn:not(.g):not(.ghost):not(.k){background:#007AFF}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line-d)}
+input[type=text],input[type=number],textarea{background:#fff;color:var(--ink);border:1px solid var(--line-d);border-radius:8px}
+input:focus-visible,textarea:focus-visible,:focus-visible{outline:3px solid rgba(0,122,255,.45);outline-offset:1px}
+.hint{color:var(--mute-l)}
+nav.top{background:rgba(255,255,255,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:var(--ink);border-bottom:1px solid rgba(0,0,0,.08)}
+nav.top a.l{color:var(--mute-l)} nav.top a.l:hover,nav.top a.l.active{color:var(--ink)}
+nav.top a.l.active::after{background:#007AFF}
+nav.top .help-pill{background:#E5352B;color:#fff;border-radius:999px}
+#hero .hl{color:#007AFF}
+.statline{border-top:1px solid var(--line-l)} .statline b{color:var(--ink)} .statline span,.statline a{color:var(--mute-l)}
+/* mac window chrome */
+.app,.phone,.arch{position:relative;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:12px;box-shadow:0 22px 70px rgba(0,0,0,.14),0 0 0 .5px rgba(0,0,0,.08);overflow:hidden}
+.app{padding-top:34px}
+.app::before,.phone::before{content:"";position:absolute;top:12px;left:14px;width:12px;height:12px;border-radius:50%;background:#FF5F57;box-shadow:20px 0 0 #FEBC2E,40px 0 0 #28C840}
+.app::after{content:"LoanShield";position:absolute;top:8px;left:0;right:0;text-align:center;font-size:.82rem;font-weight:600;color:#6E6E73}
+.app-tabs{background:#F5F5F7;border-bottom:1px solid var(--line-l);padding:.4rem;gap:.25rem}
+.app-tab{color:var(--mute-l);border:0;border-radius:8px;padding:.55rem .9rem}
+.app-tab[aria-selected=true]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12);border:0}
+.app-tab .step{border-color:var(--line-d)}
+.app-tab[aria-selected=true] .step{background:#007AFF;border-color:#007AFF}
+.phone{border-radius:28px;padding-top:2.2rem;box-shadow:0 20px 50px rgba(0,0,0,.18)}
+.phone .notch{display:none}
+.phone .bubble{background:#E9E9EB;color:var(--ink)}
+.phone .flag{background:#FFF1F0;border-color:#FFCCC7;color:var(--ink)}
+.phone .flag.g{background:#EDF9F1;border-color:#B7E4C7}
+.phone small{color:var(--mute-l)}
+.result{background:#FBFBFD;border:1px solid var(--line-l)}
+.result.ok{border-color:#B7E4C7}.result.caution,.result.watch{border-color:#FFD591}.result.danger,.result.high,.result.critical{border-color:#FFB3AE}
+.preview,#packet-out,.ai-answer{background:#F5F5F7;color:var(--ink);border:1px solid var(--line-l)}
+.preview mark{background:#FFD8D5;color:#B42318}
+.chip{background:#E8E8ED;color:var(--ink)} .chip .k{color:var(--mute-l)}
+.support{background:#EDF9F1;border-color:#B7E4C7}
+.vault-item{background:#fff;border-color:var(--line-l)} .vault-item.bad{background:#FFF1F0;border-color:#FFB3AE}
+.hash b{color:var(--ink)} .hash{color:var(--mute-l)}
+.law{border-color:#FFD591;color:#AD6800;background:#FFF7E6}
+.langs span{border-color:var(--line-d);background:#fff}
+.langs input:checked+span{background:#007AFF;border-color:#007AFF}
+.meter{background:#E8E8ED}
+.insight{background:#fff;color:var(--ink);border:1px solid var(--line-l);box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.seg{border:0;background:#E8E8ED;padding:2px;border-radius:9px}
+.seg button{background:transparent;border-radius:7px}
+.seg button[aria-pressed=true]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.stage-btn[aria-pressed=true]{background:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.half{border:1px solid var(--line-l);background:#FBFBFD}
+.dark th,.dark td{border-bottom-color:var(--line-l)}
+tr.us td,.dark tr.us td{background:#EAF3FF}
+.tab{border-radius:8px}
+.cm .good{background:#EDF9F1}.cm .badc{background:#FFF1F0}
+footer{background:#fff;color:var(--ink);border-top:1px solid var(--line-l)}
+footer p,.sources,.sources a{color:var(--mute-l)!important}
+.toast{background:rgba(255,255,255,.9);color:var(--ink);border:1px solid var(--line-l);backdrop-filter:blur(20px);box-shadow:0 10px 30px rgba(0,0,0,.15)}
+.empty{color:var(--mute-l);border-color:var(--line-d)}
+.arch{padding:1rem;background:#1E1E1E}
+.dash .card b{color:var(--ink)}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H10l-4 3.5V16H4z"/><path d="M8.5 9.5h7M8.5 12.5h4"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.5-3 7.7-7 9.5-4-1.8-7-5-7-9.5V6z"/><path d="M9 12l2.2 2.2L15.5 10"/></symbol>
+  <symbol id="i-hands" viewBox="0 0 24 24"><path d="M12 20s-7-4.3-7-9.5A3.8 3.8 0 0 1 12 8.3a3.8 3.8 0 0 1 7 2.2C19 15.7 12 20 12 20z"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7.5 14.5l3.5-4 3 2.5 4-6"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></symbol>
+  <symbol id="i-call" viewBox="0 0 24 24"><path d="M5 4h4l1.5 4-2 1.5a11 11 0 0 0 6 6l1.5-2 4 1.5v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/><path d="M15 3l6 6M21 3l-6 6"/></symbol>
+  <symbol id="i-calc" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8 7h8M8.5 11.5h1M12 11.5h0M15 11.5h.5M8.5 15h1M12 15h0M15 15h.5M8.5 18h1M12 18h3.5"/></symbol>
+  <symbol id="i-brain" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M12 5a3 3 0 0 0-5.5 1.5A3.5 3.5 0 0 0 5 12a3.5 3.5 0 0 0 2 3.2A3 3 0 0 0 12 19"/><path d="M12 5a3 3 0 0 1 5.5 1.5A3.5 3.5 0 0 1 19 12a3.5 3.5 0 0 1-2 3.2A3 3 0 0 1 12 19"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14a5 5 0 0 1 4.5 5"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+  <symbol id="i-rupee" viewBox="0 0 24 24"><path d="M7 4h11M7 8.5h11M7 4h3.5a4.5 4.5 0 0 1 0 9H7l8 7"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M4 8h16M4 8l-2.5 6a3.5 3.5 0 0 0 5 0zM20 8l-2.5 6a3.5 3.5 0 0 0 5 0z"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.7"/><path d="M4 17l5-4.5 4 3 3-2.5 4.5 4"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+</svg>
+
+<nav class="top" aria-label="Main">
+  <a class="logo" href="#hero"><span class="badge sm g"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></span>LoanShield</a>
+  <ul>
+    <li><a class="l" href="#problem">Problem</a></li>
+    <li><a class="l" href="#toolkit">Toolkit</a></li>
+    <li><a class="l" href="#graph">Scam graph</a></li>
+    <li><a class="l" href="#different">What's new</a></li>
+    <li><a class="l" href="#ecosystem">Ecosystem</a></li>
+    <li><a class="l" href="#tech">Under the hood</a></li>
+    <li><a class="l" href="#evidence">Testing</a></li>
+    <li><a class="l" href="#sdg">SDGs</a></li>
+    <li><a class="l" href="#pilot">Pilot</a></li>
+  </ul>
+  <a class="help-pill" href="#help">Get help now</a>
+</nav>
+
+<main id="main">
+
+<!-- HERO -->
+<section id="hero" class="dark" aria-labelledby="hero-h">
+  <span class="dot d-r" style="width:16px;height:16px;left:3%;top:18%"></span>
+  <span class="dot d-g" style="width:10px;height:10px;left:8%;top:26%"></span>
+  <span class="dot d-w" style="width:8px;height:8px;right:6%;top:16%"></span>
+  <span class="dot d-r" style="width:12px;height:12px;right:4%;bottom:12%"></span>
+  <div class="wrap hero-grid">
+    <div>
+      <span class="tag eyebrow">Social Work &amp; Sustainability</span>
+      <h1 id="hero-h">Loan<span class="hl">Shield</span></h1>
+      <p class="lede">Check a loan before you take it. Fight back if the threats have started. Every report makes the next victim safer.</p>
+      <p class="muted" style="max-width:52ch">Illegal loan apps rename themselves every time they are banned. LoanShield tracks the UPI IDs, phone numbers and scripts behind them, so ten app names become one case.</p>
+      <div class="cta-row">
+        <a class="btn g" href="#toolkit" data-open-tab="0"><svg class="icon" aria-hidden="true"><use href="#i-calc"/></svg>Check a loan</a>
+        <a class="btn" href="#toolkit" data-open-tab="1"><svg class="icon" aria-hidden="true"><use href="#i-brain"/></svg>Scan a message</a>
+      </div>
+      <div class="statline">
+        <div><b>87</b><span>illegal lending apps blocked by MeitY under Sec. 69A, as of Dec 2025 <a href="#src-1">[1]</a></span></div>
+        <div><b>2,000+</b><span>loan apps removed from the Play Store <a href="#src-2">[2]</a></span></div>
+        <div><b>67.8%</b><span>of cybercrime complaints are online financial fraud (NCRB) <a href="#src-3">[3]</a></span></div>
+      </div>
+    </div>
+    <div class="phone" aria-label="Example of LoanShield on a phone">
+      <div class="notch"></div>
+      <div class="bubble">Rs 6200 overdue. Pay to <mark>collect.lg@fakepay</mark> within 2 hours or your <mark>morphed</mark> photo goes to <mark>all your contacts</mark>.</div>
+      <div class="flag"><span class="badge"><svg class="icon"><use href="#i-flag"/></svg></span><span><b>Severe harassment</b><br>3 threat types found</span></div>
+      <div class="flag"><span class="badge k"><svg class="icon"><use href="#i-link"/></svg></span><span><b>Linked to operator OP-01</b><br>Same UPI ID as 3 other app names</span></div>
+      <div class="flag g"><span class="badge g"><svg class="icon"><use href="#i-lock"/></svg></span><span><b>Saved to evidence</b><br>SHA-256 chained</span></div>
+      <small>Example with fictional details</small>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section id="problem" class="light" aria-labelledby="problem-h">
+  <span class="dot d-r" style="width:14px;height:14px;right:6%;top:10%"></span>
+  <span class="dot d-k" style="width:10px;height:10px;left:4%;bottom:12%"></span>
+  <div class="wrap">
+    <span class="tag r2 eyebrow">The problem</span>
+    <h2 id="problem-h">Easy loans. Brutal collection.</h2>
+    <p class="lede">Illegal instant-loan apps target low-income, first-time borrowers, then turn the phone into a weapon.</p>
+    <div class="tricks">
+      <article class="card trick"><span class="badge"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg></span><h3>Contact blackmail</h3><p>Your family and boss get the threats.</p></article>
+      <article class="card trick"><span class="badge k"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg></span><h3>Morphed images</h3><p>Fake photos, sent to everyone you know.</p></article>
+      <article class="card trick"><span class="badge"><svg class="icon" aria-hidden="true"><use href="#i-scale"/></svg></span><h3>Fake legal notices</h3><p>Arrest warnings with no court behind them.</p></article>
+      <article class="card trick"><span class="badge k"><svg class="icon" aria-hidden="true"><use href="#i-rupee"/></svg></span><h3>Hidden cost</h3><p>Fees cut upfront, full repayment in 7 days.</p></article>
+    </div>
+    <div class="insight">
+      <span class="badge lg"><svg class="icon" aria-hidden="true"><use href="#i-link"/></svg></span>
+      <div><strong>Why bans alone don't work</strong><p>Blocking targets the app name, the cheapest thing a scammer can change. The money still lands in the same UPI accounts, and the same call centre reads the same script. LoanShield is built around those links.</p></div>
+    </div>
+    <h3 class="muted" style="font-family:var(--body);font-size:1rem;margin:0 0 1rem">This harm cuts against four UN Sustainable Development Goals</h3>
+    <div class="sdgs">
+      <a class="sdg s1" href="#sdg" style="text-decoration:none"><b>1</b><small>No Poverty</small></a>
+      <a class="sdg s8" href="#sdg" style="text-decoration:none"><b>8</b><small>Decent Work</small></a>
+      <a class="sdg s10" href="#sdg" style="text-decoration:none"><b>10</b><small>Reduced Inequalities</small></a>
+      <a class="sdg s16" href="#sdg" style="text-decoration:none"><b>16</b><small>Peace, Justice &amp; Strong Institutions</small></a>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLKIT -->
+<section id="toolkit" class="dark" aria-labelledby="tool-h">
+  <span class="dot d-g" style="width:12px;height:12px;left:4%;top:7%"></span>
+  <span class="dot d-r" style="width:9px;height:9px;right:6%;top:9%"></span>
+  <div class="wrap">
+    <span class="tag g eyebrow">The toolkit</span>
+    <h2 id="tool-h">Before, during and after the loan.</h2>
+    <p class="lede muted">Five working tools. Each one hands its results to the next. Nothing you type leaves this browser.</p>
+
+    <div class="app">
+      <div class="app-tabs" role="tablist" aria-label="LoanShield tools" id="app-tabs">
+        <button class="app-tab" role="tab" id="t-check" aria-controls="p-check" aria-selected="true"><span class="step">1</span>Check a loan</button>
+        <button class="app-tab" role="tab" id="t-scan" aria-controls="p-scan" aria-selected="false" tabindex="-1"><span class="step">2</span>Scan a message</button>
+        <button class="app-tab" role="tab" id="t-shield" aria-controls="p-shield" aria-selected="false" tabindex="-1"><span class="step">3</span>Warn your contacts</button>
+        <button class="app-tab" role="tab" id="t-vault" aria-controls="p-vault" aria-selected="false" tabindex="-1"><span class="step">4</span>Evidence vault <span class="count" id="vault-count" hidden>0</span></button>
+        <button class="app-tab" role="tab" id="t-packet" aria-controls="p-packet" aria-selected="false" tabindex="-1"><span class="step">5</span>Complaint packet</button>
+      </div>
+
+      <!-- 1 CHECK -->
+      <div class="app-panel" role="tabpanel" id="p-check" aria-labelledby="t-check">
+        <p class="panel-intro">Loan apps advertise the amount, not the cost. Enter what the app promised, what reached your account and what it wants back. You get the real yearly rate and the warning signs.</p>
+        <div class="tool-grid">
+          <form id="check-form" novalidate>
+            <span class="example-note">Filled with an example. Change any number.</span>
+            <div class="field-grid">
+              <div><label class="f" for="c-promised">Loan promised (₹)</label><input id="c-promised" type="number" inputmode="numeric" min="1" value="5000"></div>
+              <div><label class="f" for="c-received">Actually received (₹)</label><input id="c-received" type="number" inputmode="numeric" min="1" value="3500"></div>
+              <div><label class="f" for="c-repay">Repayment demanded (₹)</label><input id="c-repay" type="number" inputmode="numeric" min="1" value="5000"></div>
+              <div><label class="f" for="c-days">Days to repay</label><input id="c-days" type="number" inputmode="numeric" min="1" value="7"></div>
+              <div class="full"><label class="f" for="c-app">App name <span class="hint">(optional)</span></label><input id="c-app" type="text" value="LoanGully" autocomplete="off"></div>
+            </div>
+            <fieldset style="border:0;padding:0;margin:1.1rem 0 0">
+              <legend class="f" style="margin-bottom:.3rem">Tick what's true</legend>
+              <div id="c-questions"></div>
+            </fieldset>
+            <p class="small muted" style="margin-top:.8rem">Check any lender in RBI's <a href="https://www.rbi.org.in" target="_blank" rel="noopener">Digital Lending Apps directory</a> on rbi.org.in.</p>
+          </form>
+          <div id="check-result" class="result" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <!-- 2 SCAN -->
+      <div class="app-panel" role="tabpanel" id="p-scan" aria-labelledby="t-scan" hidden>
+        <p class="panel-intro">Paste or share a message you're worried about. LoanShield names the threat, pulls out the UPI IDs and numbers the harassers used, and can save it as evidence. On a phone, this works through the Share button, so the app never reads your SMS or WhatsApp on its own.</p>
+        <div class="tool-grid">
+          <div>
+            <span class="example-note">Example message with fictional details.</span>
+            <label class="f" for="scan-input">Message</label>
+            <textarea id="scan-input" rows="6"></textarea>
+            <div class="actions" style="margin-top:.8rem">
+              <button class="btn" id="scan-btn" type="button"><svg class="icon" aria-hidden="true"><use href="#i-brain"/></svg>Scan message</button>
+              <button class="btn ghost" id="scan-clear" type="button">Clear</button>
+            </div>
+            <p class="small muted" style="margin-top:1rem">Reads English and romanised Hindi. For Tamil, Telugu and other languages, use the AI second opinion when it appears.</p>
+          </div>
+          <div id="scan-result" class="result" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <!-- 3 SHIELD -->
+      <div class="app-panel" role="tabpanel" id="p-shield" aria-labelledby="t-shield" hidden>
+        <p class="panel-intro">The harassers' strongest weapon is your contact list. Send your family and friends a warning first, so their messages arrive already known to be false. People who were warned ignore the threats and send you screenshots for your complaint instead.</p>
+        <div class="tool-grid">
+          <div>
+            <fieldset style="border:0;padding:0;margin:0">
+              <legend class="f">Language</legend>
+              <div class="langs">
+                <label><input type="radio" name="sh-lang" value="en" checked><span>English</span></label>
+                <label><input type="radio" name="sh-lang" value="hi"><span>हिन्दी</span></label>
+                <label><input type="radio" name="sh-lang" value="ta"><span>தமிழ்</span></label>
+              </div>
+            </fieldset>
+            <div style="margin-top:1rem"><label class="f" for="sh-name">Sign it as <span class="hint">(optional)</span></label><input id="sh-name" type="text" autocomplete="given-name" placeholder="Your first name"></div>
+            <ul class="flags small" style="margin-top:1.2rem">
+              <li><span class="sev" style="background:var(--green)" aria-hidden="true"></span><span>Send it to close family, your workplace contact and anyone they are likely to message.</span></li>
+              <li><span class="sev" style="background:var(--green)" aria-hidden="true"></span><span>It asks them not to pay or reply, and to send you screenshots as evidence.</span></li>
+              <li><span class="sev" style="background:var(--green)" aria-hidden="true"></span><span>Sharing it on WhatsApp logs it in your evidence vault with the date.</span></li>
+            </ul>
+          </div>
+          <div class="result">
+            <label class="f" for="sh-out">Your warning</label>
+            <textarea id="sh-out" rows="9" readonly></textarea>
+            <div class="actions">
+              <a class="btn g" id="sh-wa" href="https://wa.me/" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>Share on WhatsApp</a>
+              <button class="btn ghost" id="sh-copy" type="button"><svg class="icon" aria-hidden="true"><use href="#i-copy"/></svg>Copy</button>
+              <button class="btn ghost" id="sh-log" type="button"><svg class="icon" aria-hidden="true"><use href="#i-lock"/></svg>Log that I sent it</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 VAULT -->
+      <div class="app-panel" role="tabpanel" id="p-vault" aria-labelledby="t-vault" hidden>
+        <p class="panel-intro">Every saved item gets a SHA-256 fingerprint that also covers the item before it. Change or delete anything later and the chain breaks from that point on, which is what makes the record believable to police. Stored only in this browser.</p>
+        <div class="tool-grid">
+          <div>
+            <div class="chain-status" id="chain-status"></div>
+            <ul class="vault-list" id="vault-list" style="margin-top:1rem"></ul>
+            <div class="actions" style="margin-top:1rem" id="vault-actions">
+              <button class="btn g" id="verify-btn" type="button"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Verify chain</button>
+              <button class="btn ghost" id="tamper-btn" type="button">Try tampering</button>
+              <button class="btn ghost" id="clear-vault" type="button">Delete all</button>
+            </div>
+            <div class="confirm-row" id="clear-confirm" hidden style="margin-top:.8rem">
+              <span>Delete every saved item from this browser?</span>
+              <button class="btn" id="clear-yes" type="button">Delete all</button>
+              <button class="btn ghost" id="clear-no" type="button">Keep them</button>
+            </div>
+          </div>
+          <form id="note-form" class="result" novalidate>
+            <h3 style="margin:0">Log a call or event</h3>
+            <p class="small muted" style="margin:0">Calls can't be pasted, so write down what happened as soon as you can: time, number, what was said.</p>
+            <div><label class="f" for="note-text">What happened</label><textarea id="note-text" rows="4" placeholder="10:40 pm call from 9000033118. Said they would visit my office tomorrow."></textarea></div>
+            <div><button class="btn" type="submit"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add to vault</button></div>
+            <p class="small" id="note-error" role="alert" style="margin:0;color:var(--red-lt)"></p>
+          </form>
+        </div>
+      </div>
+
+      <!-- 4 PACKET -->
+      <div class="app-panel" role="tabpanel" id="p-packet" aria-labelledby="t-packet" hidden>
+        <p class="panel-intro">LoanShield assembles what you've checked, scanned and saved into one complaint you can file at 1930 or cybercrime.gov.in. It never files anything for you. Your name stays on your device unless you put it in the packet.</p>
+        <div class="tool-grid">
+          <form id="packet-form" novalidate>
+            <div class="field-grid">
+              <div><label class="f" for="pk-name">Your name</label><input id="pk-name" type="text" autocomplete="name"></div>
+              <div><label class="f" for="pk-contact">Phone or email</label><input id="pk-contact" type="text"></div>
+              <div class="full"><label class="f" for="pk-city">City or district</label><input id="pk-city" type="text"></div>
+              <div class="full"><label class="f" for="pk-summary">What happened, in your words</label><textarea id="pk-summary" rows="4"></textarea></div>
+            </div>
+            <div class="actions" style="margin-top:1rem">
+              <button class="btn g" type="submit"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg>Build packet</button>
+            </div>
+            <ul class="flags small" id="packet-inputs" style="margin-top:1.2rem"></ul>
+          </form>
+          <div class="result">
+            <label class="f" for="packet-out">Your packet</label>
+            <textarea id="packet-out" readonly></textarea>
+            <div class="actions">
+              <button class="btn" id="packet-copy" type="button"><svg class="icon" aria-hidden="true"><use href="#i-copy"/></svg>Copy packet</button>
+              <button class="btn ghost" id="packet-save" type="button"><svg class="icon" aria-hidden="true"><use href="#i-down"/></svg>Save as .txt</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCAM GRAPH -->
+<section id="graph" class="light" aria-labelledby="graph-h">
+  <span class="dot d-g" style="width:12px;height:12px;left:5%;top:7%"></span>
+  <span class="dot d-r" style="width:9px;height:9px;right:6%;top:12%"></span>
+  <div class="wrap">
+    <span class="tag r3 eyebrow">The scam graph</span>
+    <h2 id="graph-h">Apps change names. Their UPI IDs don't.</h2>
+    <p class="lede">Every report adds the harassers' identifiers to a shared graph. Reports that share one join the same operator, however many app names it hides behind.</p>
+    <div class="rules">
+      <div class="rule"><span class="badge sm"><svg class="icon" aria-hidden="true"><use href="#i-rupee"/></svg></span><div><h3>Same UPI ID</h3><p>The account the money goes to. Hardest for them to swap.</p></div></div>
+      <div class="rule"><span class="badge sm k"><svg class="icon" aria-hidden="true"><use href="#i-call"/></svg></span><div><h3>Same phone number</h3><p>The recovery agent calling or texting.</p></div></div>
+      <div class="rule"><span class="badge sm a"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg></span><div><h3>Same script</h3><p>Messages at least 50% identical after names and amounts are removed.</p></div></div>
+      <div class="rule"><span class="badge sm g"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg></span><div><h3>Three people, then public</h3><p>An operator is published only after 3 different people report it. One grudge can't list anyone.</p></div></div>
+    </div>
+    <div class="graph-bar">
+      <div class="seg" role="group" aria-label="Which reports to show"><button type="button" data-mode="live" aria-pressed="false">Live reports</button><button type="button" data-mode="sample" aria-pressed="true">Sample data</button></div>
+      <p class="small muted" id="graph-status" style="margin:0" aria-live="polite"></p>
+    </div>
+    <div class="ops" id="ops"></div>
+    <div class="legend"><span><i style="background:var(--ink);border-radius:50%"></i>App name</span><span><i style="background:var(--red)"></i>UPI ID</span><span><i style="background:var(--amber)"></i>Phone number</span><span><i style="border-top:2px dashed var(--mute-l);height:0;width:16px"></i>Same script</span></div>
+
+    <h3 style="margin-top:2.8rem">What the public dashboard shows</h3>
+    <p class="muted" style="max-width:62ch">The Reform stage publishes these numbers so regulators and app stores can be held to them.</p>
+    <div class="dash" id="dash"></div>
+  </div>
+</section>
+
+<!-- WHAT'S DIFFERENT -->
+<section id="different" class="dark" aria-labelledby="diff-h">
+  <span class="dot d-r" style="width:12px;height:12px;right:5%;top:8%"></span>
+  <span class="dot d-w" style="width:8px;height:8px;left:6%;bottom:8%"></span>
+  <div class="wrap">
+    <span class="tag eyebrow">What's new here</span>
+    <h2 id="diff-h">What already exists, and the gap it leaves.</h2>
+    <p class="lede muted">India has real tools against this. Each one sees part of the picture. None of them connects a victim's evidence to the operator behind a rebrand.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Tool</th><th scope="col">Who runs it</th><th scope="col">What it does</th><th scope="col">The gap</th></tr></thead>
+        <tbody>
+          <tr><td>Play Store loan policy <a href="#src-4">[4]</a></td><td>Google</td><td>Bans contact and photo access for loan apps; in India, only RBI-listed apps</td><td>Doesn't reach apps installed from a WhatsApp or Telegram link</td></tr>
+          <tr><td>DLA directory <a href="#src-5">[5]</a></td><td>RBI</td><td>Lists apps run by regulated lenders, since July 2025</td><td>You must know to check. It says who is legal, not who is harassing you</td></tr>
+          <tr><td>Sec. 69A blocking <a href="#src-1">[1]</a></td><td>MeitY</td><td>Blocks named apps</td><td>Blocks one name at a time; the operator returns under another</td></tr>
+          <tr><td>MuleHunter.AI <a href="#src-6">[6]</a></td><td>RBI Innovation Hub, banks</td><td>Flags mule accounts from bank transaction data</td><td>Bank-side only. A victim's threats and screenshots never reach it</td></tr>
+          <tr><td>1930, cybercrime.gov.in, Chakshu <a href="#src-7">[7]</a></td><td>I4C, DoT</td><td>Take individual complaints and fraud reports</td><td>Each complaint stands alone; victims must assemble their own evidence</td></tr>
+          <tr class="us"><td><b>LoanShield</b></td><td>NGOs, students, legal-aid clinics</td><td>Checks the loan, flags threats, chains evidence, links reports by UPI ID, number and script</td><td>Hands linked, hash-verified cases to every tool above</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top:2.6rem">Six things only LoanShield does</h3>
+    <div class="only">
+      <article class="card tilt-l"><span class="tag g flat" style="margin-bottom:.6rem">Detect</span><h3>Links rebrands by the money trail</h3><p>Groups app names by shared UPI IDs, phone numbers and scripts, so a ban can target the operator instead of the name.</p></article>
+      <article class="card tilt-r"><span class="tag flat" style="margin-bottom:.6rem">Respond</span><h3>Turns lone victims into one case</h3><p>When three or more people report the same operator, their evidence becomes one bundled case for the cyber cell.</p></article>
+      <article class="card tilt-l"><span class="tag k flat" style="margin-bottom:.6rem">Protect</span><h3>Evidence that proves it wasn't edited</h3><p>A hash chain records each item's SHA-256, the value a Section 63 certificate asks for in court <a href="#src-8">[8]</a>.</p></article>
+      <article class="card tilt-r"><span class="tag g flat" style="margin-bottom:.6rem">Prevent</span><h3>Shows the real cost before you borrow</h3><p>Converts "₹5,000 in 7 days" into a yearly rate and checks it against RBI and Play Store rules.</p></article>
+      <article class="card tilt-l"><span class="tag flat" style="margin-bottom:.6rem">Protect</span><h3>Disarms the contact list first</h3><p>Contact Shield warns family and colleagues in English, Hindi or Tamil before the harassers reach them, so the blackmail loses its power.</p></article>
+      <article class="card tilt-r"><span class="tag k flat" style="margin-bottom:.6rem">Respond</span><h3>Names the rule each message breaks</h3><p>Every saved threat is matched to RBI's recovery rules, the BNS or the IT Act, and late-night calls are checked against RBI's 8 am to 7 pm window.</p></article>
+    </div>
+  </div>
+</section>
+
+<!-- ECOSYSTEM -->
+<section id="ecosystem" class="light" aria-labelledby="eco-h">
+  <span class="dot d-g" style="width:12px;height:12px;left:5%;top:8%"></span>
+  <span class="dot d-r" style="width:9px;height:9px;right:8%;top:12%"></span>
+  <div class="wrap">
+    <span class="tag eyebrow">The ecosystem</span>
+    <h2 id="eco-h">One system. Five stages.</h2>
+    <p class="lede">Each stage pairs a tool with the people who make it work. Pick a stage.</p>
+    <div class="flow">
+      <svg class="loop" viewBox="0 0 1000 70" aria-hidden="true" focusable="false">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+        <path d="M900 70V28Q900 16 888 16H112Q100 16 100 28V64" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="9 7" marker-end="url(#ah)"/>
+        <text x="500" y="10" text-anchor="middle" fill="currentColor" font-size="13" font-weight="700" font-family="Calibri,Carlito,sans-serif">Hotspots from Reform decide where Prevent runs next</text>
+      </svg>
+      <span class="tag g loop-pill">Reform feeds back into Prevent</span>
+      <ol class="stages" id="stages"></ol>
+    </div>
+    <div class="card stage-panel" id="stage-panel" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- UNDER THE HOOD -->
+<section id="tech" class="dark" aria-labelledby="tech-h">
+  <span class="dot d-r" style="width:12px;height:12px;left:4%;top:8%"></span>
+  <span class="dot d-g" style="width:10px;height:10px;right:6%;top:10%"></span>
+  <div class="wrap">
+    <span class="tag eyebrow">Under the hood</span>
+    <h2 id="tech-h">What runs where.</h2>
+    <p class="lede muted">Your messages stay on your phone. Only the harassers' identifiers leave it, and only when you choose to report.</p>
+    <div class="arch">
+      <svg viewBox="0 0 880 400" role="img" aria-labelledby="arch-t arch-d">
+        <title id="arch-t">LoanShield data flow</title>
+        <desc id="arch-d">On the phone: share-in scanner, loan truth check, evidence vault and packet builder. Only scammer identifiers go to the scam graph service, which publishes operators after three reporters and sends bundled cases to cyber cells, RBI and MeitY, Google Play and telecoms. A WhatsApp or IVR line serves basic phones.</desc>
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#C9CED4"/></marker></defs>
+        <rect x="10" y="20" width="300" height="300" rx="16" fill="#1E1E1E" stroke="#5FD39C" stroke-width="1.5" stroke-dasharray="6 5"/>
+        <text x="30" y="48" fill="#5FD39C" font-family="Calibri,Carlito,sans-serif" font-size="14" font-weight="700">ON YOUR PHONE</text>
+        <g font-family="Calibri,Carlito,sans-serif" font-size="14" fill="#FFFFFF">
+          <rect x="30" y="64" width="260" height="48" rx="10" fill="#2E3238"/><text x="46" y="85" font-weight="700">Share-in threat scanner</text><text x="46" y="103" fill="#C9CED4" font-size="12">Share button / paste. No SMS permission.</text>
+          <rect x="30" y="122" width="260" height="48" rx="10" fill="#2E3238"/><text x="46" y="143" font-weight="700">Loan Truth Check</text><text x="46" y="161" fill="#C9CED4" font-size="12">APR + RBI / Play rule checks</text>
+          <rect x="30" y="180" width="260" height="48" rx="10" fill="#2E3238"/><text x="46" y="201" font-weight="700">Evidence vault</text><text x="46" y="219" fill="#C9CED4" font-size="12">SHA-256 hash chain, encrypted (SQLCipher)</text>
+          <rect x="30" y="238" width="260" height="48" rx="10" fill="#2E3238"/><text x="46" y="259" font-weight="700">Complaint packet + call screening</text><text x="46" y="277" fill="#C9CED4" font-size="12">CallScreeningService role</text>
+        </g>
+        <rect x="10" y="340" width="300" height="48" rx="12" fill="#1E1E1E" stroke="#3A3F45"/>
+        <text x="26" y="361" fill="#FFFFFF" font-family="Calibri,Carlito,sans-serif" font-size="14" font-weight="700">Basic phone: WhatsApp / IVR line</text>
+        <text x="26" y="378" fill="#C9CED4" font-family="Calibri,Carlito,sans-serif" font-size="12">Lender lookup + Truth Check by voice or text</text>
+        <path d="M310 170 H406" stroke="#C9CED4" stroke-width="2" marker-end="url(#ar)"/>
+        <path d="M310 364 H350 V250 H406" fill="none" stroke="#C9CED4" stroke-width="2" marker-end="url(#ar)"/>
+        <text x="316" y="148" fill="#F5B041" font-family="Calibri,Carlito,sans-serif" font-size="11" font-weight="700">only UPI IDs,</text>
+        <text x="316" y="162" fill="#F5B041" font-family="Calibri,Carlito,sans-serif" font-size="11" font-weight="700">numbers, script</text>
+        <rect x="410" y="110" width="200" height="180" rx="16" fill="#C0392B"/>
+        <g font-family="Calibri,Carlito,sans-serif" fill="#FFFFFF">
+          <text x="426" y="140" font-size="16" font-weight="700">Scam graph service</text>
+          <text x="426" y="166" font-size="12">Union-find on UPI ID,</text>
+          <text x="426" y="182" font-size="12">phone and script (Jaccard ≥ 0.5)</text>
+          <text x="426" y="206" font-size="12">Publish at ≥ 3 reporters</text>
+          <text x="426" y="230" font-size="12">Firebase or small REST API</text>
+          <text x="426" y="254" font-size="12">RBI DLA list synced in</text>
+        </g>
+        <path d="M610 200 H650" stroke="#C9CED4" stroke-width="2"/>
+        <path d="M650 60 V340" stroke="#C9CED4" stroke-width="2"/>
+        <g font-family="Calibri,Carlito,sans-serif" font-size="13" fill="#FFFFFF">
+          <path d="M650 60 H672" stroke="#C9CED4" stroke-width="2" marker-end="url(#ar)"/><rect x="676" y="38" width="196" height="44" rx="10" fill="#2E3238"/><text x="690" y="58" font-weight="700">Public dashboard</text><text x="690" y="74" fill="#C9CED4" font-size="11">Reform stage</text>
+          <path d="M650 130 H672" stroke="#C9CED4" stroke-width="2" marker-end="url(#ar)"/><rect x="676" y="108" width="196" height="44" rx="10" fill="#2E3238"/><text x="690" y="128" font-weight="700">Cyber cell / I4C</text><text x="690" y="144" fill="#C9CED4" font-size="11">Bundled case per operator</text>
+          <path d="M650 200 H672" stroke="#C9CED4" stroke-width="2" marker-end="url(#ar)"/><rect x="676" y="178" width="196" height="44" rx="10" fill="#2E3238"/><text x="690" y="198" font-weight="700">RBI / MeitY</text><text x="690" y="214" fill="#C9CED4" font-size="11">Block the operator, not one name</text>
+          <path d="M650 270 H672" stroke="#C9CED4" stroke-width="2" marker-end="url(#ar)"/><rect x="676" y="248" width="196" height="44" rx="10" fill="#2E3238"/><text x="690" y="268" font-weight="700">Google Play</text><text x="690" y="284" fill="#C9CED4" font-size="11">Lookalike app takedowns</text>
+          <path d="M650 340 H672" stroke="#C9CED4" stroke-width="2" marker-end="url(#ar)"/><rect x="676" y="318" width="196" height="44" rx="10" fill="#2E3238"/><text x="690" y="338" font-weight="700">Telecoms via Chakshu</text><text x="690" y="354" fill="#C9CED4" font-size="11">Recovery numbers reported</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="two">
+      <div>
+        <h3>Requirements</h3>
+        <ul class="reqs">
+          <li><code>FR1</code><span>Show the yearly cost and rule violations of any loan offer in under 10 seconds.</span></li>
+          <li><code>FR2</code><span>Classify a shared message by threat type, and extract UPI IDs, numbers and links.</span></li>
+          <li><code>FR3</code><span>Store evidence in a hash chain that detects any later edit or deletion.</span></li>
+          <li><code>FR4</code><span>Link reports into operators and publish only at 3 or more distinct reporters.</span></li>
+          <li><code>FR5</code><span>Produce a complaint packet the user files themselves, naming the rules each message breaks.</span></li>
+          <li><code>FR6</code><span>Draft a warning the user sends their own contacts, in English, Hindi or Tamil.</span></li>
+          <li><code>NFR1</code><span>Message text never leaves the device. Consent before any report. Follows the DPDP Act and Rules <a href="#src-9">[9]</a>.</span></li>
+          <li><code>NFR2</code><span>Works offline, in English and romanised Hindi first, and on basic phones through WhatsApp or IVR.</span></li>
+          <li><code>NFR3</code><span>Passes Play Store review: no SMS, call-log or contacts permission.</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Android permissions</h3>
+        <div class="table-wrap" style="margin-top:.6rem">
+          <table style="min-width:420px">
+            <thead><tr><th scope="col">Permission</th><th scope="col">Used</th><th scope="col">Why</th></tr></thead>
+            <tbody>
+              <tr><td>READ_SMS, READ_CALL_LOG</td><td class="perm-no">No</td><td>Play restricts both to default SMS and dialer apps. Text arrives by Share.</td></tr>
+              <tr><td>READ_CONTACTS</td><td class="perm-no">No</td><td>We protect contacts; we don't collect them.</td></tr>
+              <tr><td>Call screening role</td><td class="perm-yes">Yes</td><td>Warns on numbers already linked to an operator.</td></tr>
+              <tr><td>INTERNET</td><td class="perm-yes">Yes</td><td>Sync the operator list and the RBI DLA list. Reports only with consent.</td></tr>
+              <tr><td>Share target (intent filter)</td><td class="perm-yes">Yes</td><td>Receives messages and screenshots you choose to share.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small muted" style="margin-top:1rem">Stack: Kotlin, TensorFlow Lite for the Phase 2 classifier, ML Kit OCR for screenshots, SQLCipher for the vault.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTING -->
+<section id="evidence" class="light" aria-labelledby="ev-h">
+  <span class="dot d-g" style="width:12px;height:12px;right:6%;top:8%"></span>
+  <span class="dot d-r" style="width:9px;height:9px;left:5%;bottom:10%"></span>
+  <div class="wrap">
+    <span class="tag g eyebrow">Testing</span>
+    <h2 id="ev-h">Does the scanner work?</h2>
+    <p class="lede">We wrote 50 messages, 25 harassing and 25 ordinary, and ran the scanner on them. These results are computed live in your browser from the same code the toolkit uses.</p>
+    <div class="val-grid">
+      <div>
+        <div class="scores" id="val-scores"></div>
+        <div class="cm" id="val-cm" aria-label="Confusion matrix"></div>
+        <p class="small muted" style="margin-top:1rem">A message counts as harassment at a score of 40 or more.</p>
+      </div>
+      <div>
+        <h3>Where it was wrong, and why</h3>
+        <ul class="miss" id="val-miss"></ul>
+      </div>
+    </div>
+    <details class="set"><summary>See all 50 test messages</summary><ol id="val-set"></ol></details>
+    <div class="card limits">
+      <h3>What this does and doesn't prove</h3>
+      <ul>
+        <li>The team wrote the test messages and tuned one weight after the first run, so these scores are optimistic.</li>
+        <li>The scanner leans toward flagging. People only share messages that already worry them, and a missed threat costs more than a false alarm.</li>
+        <li>Real accuracy gets measured in the pilot, with consenting users marking each result right or wrong.</li>
+        <li>Also checked in code: the yearly-rate formula, the hash chain catching an edited item, and the graph merging 8 reports into 3 operators.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ALTERNATIVES -->
+<section id="alternatives" class="dark" aria-labelledby="alt-h">
+  <span class="dot d-r" style="width:12px;height:12px;left:5%;top:10%"></span>
+  <span class="dot d-g" style="width:9px;height:9px;right:7%;bottom:10%"></span>
+  <div class="wrap">
+    <span class="tag r2 eyebrow">Options we weighed</span>
+    <h2 id="alt-h">Why not something simpler?</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Why we rejected it</th><th scope="col">What we kept</th></tr></thead>
+        <tbody>
+          <tr><td>A spam-blocking app on its own</td><td>Helps one phone. Victims stay isolated and the operator moves on.</td><td>Call screening, inside the Protect stage</td></tr>
+          <tr><td>Lobby for more app bans</td><td>Bans target names; operators rebrand within weeks.</td><td>Operator-level evidence that makes bans stick</td></tr>
+          <tr><td>A central helpline only</td><td>Victims still collect evidence alone and file one by one.</td><td>Volunteer support in Respond, with a ready packet</td></tr>
+          <tr><td>Auto-read every SMS and WhatsApp</td><td>Play Store bans it, WhatsApp can't be read, and it invades privacy.</td><td>Share-in scanning the user controls</td></tr>
+          <tr><td>A blockchain evidence ledger</td><td>Costly and complex; a court needs a hash and a certificate.</td><td>A local SHA-256 hash chain</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- SDG -->
+<section id="sdg" class="light" aria-labelledby="sdg-h">
+  <span class="dot d-r" style="width:12px;height:12px;right:5%;top:8%"></span>
+  <span class="dot d-g" style="width:9px;height:9px;left:6%;bottom:8%"></span>
+  <div class="wrap">
+    <span class="tag g r3 eyebrow">SDG impact</span>
+    <h2 id="sdg-h">Each feature answers a target.</h2>
+    <p class="lede">The same four goals from Part 1, mapped to specific UN targets and the number we track for each.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Target</th><th scope="col">The harm today</th><th scope="col">What LoanShield does</th><th scope="col">What we measure</th></tr></thead>
+        <tbody>
+          <tr><td><span class="sdg-mini s1">1.4</span>Equal access to financial services</td><td>"Fast credit" that costs over 2,000% a year</td><td>Truth Check, plus referral to SHG and microfinance loans</td><td>Users who check a loan before borrowing</td></tr>
+          <tr><td><span class="sdg-mini s1">1.5</span>Resilience of the poor to shocks</td><td>One emergency loan becomes a debt spiral</td><td>Flags upfront cuts and short tenures before signing</td><td>Loans declined after a red flag</td></tr>
+          <tr><td><span class="sdg-mini s8">8.10</span>Access to sound financial institutions</td><td>Illegal apps crowd out regulated lenders</td><td>Checks the RBI DLA list; points users to listed lenders</td><td>Lookups that end at a listed lender</td></tr>
+          <tr><td><span class="sdg-mini s10">10.2</span>Inclusion of all</td><td>Victims with the least literacy are targeted most</td><td>Hinglish scanner, WhatsApp and IVR for basic phones, volunteer help</td><td>Share of users on basic phones or using Hindi</td></tr>
+          <tr><td><span class="sdg-mini s16">16.3</span>Equal access to justice</td><td>Victims don't report; evidence is weak</td><td>Hash-chained evidence and a ready packet</td><td>Complaints filed with a LoanShield packet</td></tr>
+          <tr><td><span class="sdg-mini s16">16.4</span>Reduce illicit financial flows</td><td>Money lands in mule UPI accounts</td><td>Operator links by UPI ID, passed to cyber cells</td><td>UPI IDs reported per operator</td></tr>
+          <tr><td><span class="sdg-mini s16">16.6</span>Accountable institutions</td><td>Bans happen out of public view</td><td>Public dashboard of operators and days to publish</td><td>Median days from first report to action</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- PILOT -->
+<section id="pilot" class="dark" aria-labelledby="pilot-h">
+  <span class="dot d-g" style="width:12px;height:12px;left:5%;top:9%"></span>
+  <span class="dot d-r" style="width:10px;height:10px;right:7%;bottom:9%"></span>
+  <div class="wrap">
+    <span class="tag eyebrow">Pilot</span>
+    <h2 id="pilot-h">90 days in one district.</h2>
+    <p class="lede muted">Partners: one SHG federation, one law college legal-aid clinic, and the district cyber cell. Students run it.</p>
+    <div class="weeks">
+      <article class="card week"><span class="tag g">Weeks 1–4</span><h3>Teach and check</h3><ul><li>Truth Check camps at SHG meetings</li><li>Translate the scanner's word list with members</li><li>Agree a referral route to the cyber cell</li></ul></article>
+      <article class="card week"><span class="tag">Weeks 5–8</span><h3>Scan and save</h3><ul><li>Volunteers help victims scan and save evidence</li><li>Users mark each scan right or wrong</li><li>First reports enter the scam graph</li></ul></article>
+      <article class="card week"><span class="tag k">Weeks 9–12</span><h3>Bundle and report</h3><ul><li>Bundled cases go to the cyber cell</li><li>Publish the first dashboard</li><li>Write the findings brief for RBI and MeitY</li></ul></article>
+    </div>
+    <div class="table-wrap metrics">
+      <table>
+        <thead><tr><th scope="col">Success measure</th><th scope="col">Target by day 90</th></tr></thead>
+        <tbody>
+          <tr><td>People who used Truth Check before borrowing</td><td class="num">200</td></tr>
+          <tr><td>Scanner results users marked correct</td><td class="num">85% or more</td></tr>
+          <tr><td>Operators linked across two or more app names</td><td class="num">3 or more</td></tr>
+          <tr><td>Complaints filed with a packet</td><td class="num">25</td></tr>
+          <tr><td>Users who say they felt less alone (exit survey)</td><td class="num">70% or more</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3 style="margin-top:2.6rem">After the pilot</h3>
+    <div class="weeks">
+      <article class="card week"><span class="tag g">Phase 1 · now</span><h3>This website</h3><ul><li>Truth Check, scanner, vault, packet</li><li>Scam graph on sample data</li></ul></article>
+      <article class="card week"><span class="tag">Phase 2</span><h3>Android app</h3><ul><li>Share-in, call screening, OCR</li><li>TensorFlow Lite classifier trained on pilot data</li></ul></article>
+      <article class="card week"><span class="tag k">Phase 3</span><h3>Shared graph</h3><ul><li>Live operator service and dashboard</li><li>WhatsApp and IVR line; Tamil and more</li></ul></article>
+    </div>
+  </div>
+</section>
+
+<!-- HELP -->
+<section id="help" class="light" aria-labelledby="help-h">
+  <span class="dot d-g" style="width:12px;height:12px;right:6%;top:9%"></span>
+  <div class="wrap">
+    <span class="tag g r2 eyebrow">Get help now</span>
+    <h2 id="help-h">You did nothing wrong by borrowing.</h2>
+    <p class="lede">Threats, morphed photos and fake arrest warnings are crimes. Don't pay more to make them stop. Save the evidence and report.</p>
+    <div class="help" id="help-list">
+      <div class="card"><span class="muted small">Cybercrime helpline</span><span class="what">1930</span><p>Call as soon as you can, especially if money was taken.</p><div class="actions"><button class="copy-btn" data-copy="1930" type="button">Copy number</button></div></div>
+      <div class="card"><span class="muted small">File a complaint online</span><span class="what" style="font-size:1.3rem">cybercrime.gov.in</span><p>Attach your LoanShield packet.</p><div class="actions"><a class="copy-btn" href="https://cybercrime.gov.in" target="_blank" rel="noopener" style="text-decoration:none">Open site</a></div></div>
+      <div class="card"><span class="muted small">Report the number</span><span class="what" style="font-size:1.3rem">Chakshu</span><p>On sancharsaathi.gov.in, report fraud calls and messages.</p><div class="actions"><a class="copy-btn" href="https://sancharsaathi.gov.in" target="_blank" rel="noopener" style="text-decoration:none">Open site</a></div></div>
+      <div class="card"><span class="muted small">Talk to someone, free and 24×7</span><span class="what">14416</span><p>Tele-MANAS mental health helpline.</p><div class="actions"><button class="copy-btn" data-copy="14416" type="button">Copy number</button></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOADS -->
+<section id="downloads" class="dark" aria-labelledby="dl-h">
+  <span class="dot d-r" style="width:12px;height:12px;left:5%;top:10%"></span>
+  <span class="dot d-w" style="width:9px;height:9px;right:8%;bottom:10%"></span>
+  <div class="wrap">
+    <span class="tag r2 eyebrow">Source decks</span>
+    <h2 id="dl-h">Read the full decks.</h2>
+    <div class="dl-grid">
+      <article class="card dl"><span class="badge"><svg class="icon" aria-hidden="true"><use href="#i-flag"/></svg></span>
+        <h3>Part 1 · The problem</h3><p class="muted small">Digital loan app harassment and the four SDGs.</p>
+        <button class="btn" type="button" data-deck="LoanShield_Part1_Problem.pdf"><svg class="icon" aria-hidden="true"><use href="#i-down"/></svg>Download Part 1 (PDF)</button></article>
+      <article class="card dl"><span class="badge g"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></span>
+        <h3>Final deck · Problem to solution</h3><p class="muted small">Objectives, the pipeline, novelty, tech stack, testing, challenges and future scope.</p>
+        <button class="btn g" type="button" data-deck="LoanShield_Final.pdf"><svg class="icon" aria-hidden="true"><use href="#i-down"/></svg>Download final deck (PDF)</button></article>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <span class="dot d-r" style="width:12px;height:12px;left:5%;top:14%"></span>
+  <span class="dot d-g" style="width:9px;height:9px;right:7%;top:20%"></span>
+  <p class="close">Safer loans. Stronger people.</p>
+  <div class="sdgs" aria-label="UN Sustainable Development Goals 1, 8, 10 and 16">
+    <div class="sdg s1"><b>1</b><small>No Poverty</small></div>
+    <div class="sdg s8"><b>8</b><small>Decent Work</small></div>
+    <div class="sdg s10"><b>10</b><small>Reduced Inequalities</small></div>
+    <div class="sdg s16"><b>16</b><small>Peace &amp; Justice</small></div>
+  </div>
+  <p style="color:var(--mute-d)">LoanShield · Social Work &amp; Sustainability course project</p>
+  <p class="small" style="color:var(--mute-d)">[Team names] · [Course code] · [Institution]</p>
+  <div class="sources" id="sources">
+    <p><b>Sources</b></p>
+    <ol>
+      <li id="src-1"><a href="https://www.pib.gov.in/PressReleasePage.aspx?PRID=2287195" target="_blank" rel="noopener">PIB: Government and RBI strengthen digital lending ecosystem (87 apps blocked under Sec. 69A)</a></li>
+      <li id="src-2"><a href="https://rsdebate.nic.in/bitstream/123456789/747542/1/PQ_263_06022024_U402_p363_p364.pdf" target="_blank" rel="noopener">Rajya Sabha, Unstarred Q. 263, 6 Feb 2024: loan apps removed from the Play Store</a></li>
+      <li id="src-3"><a href="https://www.business-standard.com/finance/news/what-is-mulehunter-ai-rbi-s-latest-tool-against-financial-fraud-explained-124120600865_1.html" target="_blank" rel="noopener">Business Standard, citing NCRB: online financial fraud as share of cybercrime complaints</a></li>
+      <li id="src-4"><a href="https://support.google.com/googleplay/android-developer/answer/9876821" target="_blank" rel="noopener">Google Play Console Help: Financial Services policy (personal loans, India requirements)</a></li>
+      <li id="src-5"><a href="https://www.pib.gov.in/PressReleasePage.aspx?PRID=2200567" target="_blank" rel="noopener">PIB: DLA directory operational from 1 July 2025; RBI (Digital Lending) Directions, 8 May 2025</a></li>
+      <li id="src-6"><a href="https://www.business-standard.com/finance/news/what-is-mulehunter-ai-rbi-s-latest-tool-against-financial-fraud-explained-124120600865_1.html" target="_blank" rel="noopener">Business Standard: What is MuleHunter.AI</a></li>
+      <li id="src-7"><a href="https://sancharsaathi.gov.in/" target="_blank" rel="noopener">Sanchar Saathi (Chakshu)</a> and <a href="https://cybercrime.gov.in" target="_blank" rel="noopener">National Cybercrime Reporting Portal</a></li>
+      <li id="src-8"><a href="https://upload.indiacode.nic.in/schedulefile?aid=AC_CEN_5_23_00049_2023-47_1719292804654&amp;rid=1163" target="_blank" rel="noopener">Bharatiya Sakshya Adhiniyam, 2023: Schedule certificate under Sec. 63 (India Code)</a></li>
+      <li id="src-9"><a href="https://static.pib.gov.in/WriteReadData/specificdocs/documents/2025/nov/doc20251117695301.pdf" target="_blank" rel="noopener">PIB: Digital Personal Data Protection Rules, 2025 notified</a></li>
+    </ol>
+  </div>
+</footer>
+
+<script>
+/* LoanShield core logic — pure functions shared by the website and the tests.
+   No network calls. Everything runs on the user's own device. */
+(function (root) {
+'use strict';
+
+/* ------------------------------------------------------------------
+   1. LOAN TRUTH CHECK  (Prevent · SDG 1.4)
+   Turns "₹5,000 loan" marketing into the real yearly cost.
+------------------------------------------------------------------ */
+function truthCheck(o) {
+  const promised = +o.promised, received = +o.received, repay = +o.repay, days = +o.days;
+  if (!(promised > 0 && received > 0 && repay > 0 && days > 0)) return { error: 'Fill in all four amounts with numbers above zero.' };
+  if (received > promised) return { error: 'The amount you received can’t be more than the amount promised.' };
+  if (repay < received) return { error: 'The repayment should be at least the amount you received.' };
+  const upfrontCut = promised - received;                 // fees taken before the money reaches you
+  const totalCost = repay - received;                      // everything you pay on top of what you got
+  const periodRate = totalCost / received;
+  const apr = periodRate * (365 / days) * 100;             // simple annualised rate, same basis lenders must show in a KFS
+  const flags = [];
+  if (upfrontCut > 0) flags.push({ id: 'upfront', sev: 2, text: `₹${fmt(upfrontCut)} (${pct(upfrontCut / promised)}) was cut before the money reached you.` });
+  if (days <= 60) flags.push({ id: 'short', sev: 3, text: `Repayment in ${days} days. Google Play does not allow personal-loan apps that demand full repayment in 60 days or less.` });
+  if (apr >= 100) flags.push({ id: 'apr', sev: 3, text: `The real yearly cost is ${fmt(Math.round(apr))}%. The loan costs more than its own amount every year.` });
+  else if (apr >= 36) flags.push({ id: 'apr', sev: 2, text: `The real yearly cost is ${fmt(Math.round(apr))}%. Ask for a Key Fact Statement and compare.` });
+  (o.answers || []).forEach(a => { const r = RED_FLAG_QUESTIONS.find(q => q.id === a); if (r) flags.push({ id: r.id, sev: r.sev, text: r.why }); });
+  const risk = Math.min(100, flags.reduce((s, f) => s + f.sev * 12, 0));
+  const verdict = risk >= 60 ? 'danger' : risk >= 25 ? 'caution' : 'ok';
+  return { upfrontCut, totalCost, apr, perDay: totalCost / days, flags, risk, verdict };
+}
+const RED_FLAG_QUESTIONS = [
+  { id: 'notInDla', sev: 3, q: 'The app is not in RBI’s Digital Lending Apps directory', why: 'Not in RBI’s DLA directory. Since July 2025 RBI lists every app run by a regulated lender. Google Play India also requires a listed app.' },
+  { id: 'apk', sev: 3, q: 'I installed it from a link (WhatsApp, Telegram, SMS), not the Play Store', why: 'Installed from a link. Play Store rules don’t protect you outside the store.' },
+  { id: 'perms', sev: 3, q: 'It asked to read my contacts, photos or files', why: 'Asked for contacts, photos or files. Google Play bans these permissions for personal-loan apps.' },
+  { id: 'noKfs', sev: 2, q: 'I didn’t get a Key Fact Statement showing the APR', why: 'No Key Fact Statement. RBI’s Digital Lending Directions require one, with the APR, before you sign.' },
+  { id: 'noLender', sev: 2, q: 'The app doesn’t name the bank or NBFC behind the loan', why: 'No named bank or NBFC. Legitimate apps must disclose the regulated lender.' }
+];
+
+/* ------------------------------------------------------------------
+   2. THREAT SCANNER  (Protect · SDG 16.3)
+   Weighted lexicon in English + romanised Hindi (Hinglish).
+   Shared-in text only: the app never reads SMS or WhatsApp in the background.
+------------------------------------------------------------------ */
+const LEXICON = [
+  { cat: 'contacts', label: 'Threat to message your contacts', w: 40, terms: ['your contacts','your contact list','all your contacts','contact list','your family','your relatives','your office','your boss','your colleagues','your friends','everyone in your phone','everyone you know','message everyone','send to all','tere contacts','tumhare contacts','sabko bhej','sab ko bhej','sabko bata','ghar walon','gharwalon','gharwalo','rishtedaar','office mein bata','tumhare boss'] },
+  { cat: 'image', label: 'Threat to misuse your photos', w: 55, terms: ['morph','morphed','edited photo','nude','obscene','photo viral','viral kar','make viral','leak your photo','photo leak','gandi photo','tumhari photo','your photo will'] },
+  { cat: 'legal', label: 'Fake legal or police threat', w: 40, terms: ['fir','arrest','warrant','legal notice','court notice','digital arrest','cbi','cyber cell','police case','police complaint','jail','giraftaar','case darj','non-bailable'] },
+  { cat: 'shame', label: 'Name-calling or public shaming', w: 35, terms: ['fraud','fraudster','thief','chor','cheater','defaulter','beggar','bhikari','shameless','besharam','loser'] },
+  { cat: 'violence', label: 'Threat of physical harm', w: 60, terms: ['kill you','beat you','break your','maar denge','jaan se','dekh lenge','we know where you live','ghar aa jayenge','come to your house','hurt you'] },
+  { cat: 'urgency', label: 'Pressure to pay right now', w: 10, terms: ['pay now','pay immediately','pay today','final warning','last warning','final notice','within 1 hour','within 2 hours','within 24 hours','abhi pay','turant','last chance'] },
+  { cat: 'fees', label: 'Extra charges', w: 8, terms: ['penalty','late fee','extra charge','processing fee','double the amount','overdue charge'] }
+];
+const LEVELS = [
+  { min: 70, id: 'critical', label: 'Severe harassment' },
+  { min: 40, id: 'high', label: 'Harassment' },
+  { min: 20, id: 'watch', label: 'Pressure, keep watching' },
+  { min: 0, id: 'clear', label: 'Looks like a routine message' }
+];
+function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+const LEX_RE = LEXICON.map(c => ({ ...c, re: new RegExp('(?:^|[^a-z0-9])(' + c.terms.map(escRe).sort((a, b) => b.length - a.length).join('|') + ')(?=$|[^a-z0-9])', 'gi') }));
+
+function scanMessage(text) {
+  const t = String(text || '');
+  const hits = [];
+  let score = 0;
+  LEX_RE.forEach(c => {
+    c.re.lastIndex = 0;
+    const found = new Set();
+    let m;
+    while ((m = c.re.exec(t)) !== null) { found.add(m[1]); if (c.re.lastIndex === m.index) c.re.lastIndex++; }
+    if (found.size) { hits.push({ cat: c.cat, label: c.label, w: c.w, phrases: [...found] }); score += c.w; }
+  });
+  score = Math.min(100, score);
+  const level = LEVELS.find(l => score >= l.min);
+  return { score, level: level.id, levelLabel: level.label, hits, ids: extractIdentifiers(t), needsSupport: score >= 40 };
+}
+
+/* Identifiers the scammer cannot cheaply change. These, not the app name, link rebrands. */
+function extractIdentifiers(text) {
+  const t = String(text || '');
+  const upi = uniq((t.match(/\b[a-z0-9._-]{2,}@[a-z]{2,}\b(?!\.)/gi) || []).map(s => s.toLowerCase()));
+  const phones = uniq((t.match(/(?:\+91[\s-]?)?\b[6-9]\d{4}[\s-]?\d{5}\b/g) || []).map(normPhone));
+  const links = uniq((t.match(/\bhttps?:\/\/[^\s<>"]+|\b[\w-]+\.apk\b/gi) || []).map(s => s.toLowerCase().replace(/[).,]+$/, '')));
+  return { upi, phones, links };
+}
+function normPhone(p) { const d = p.replace(/\D/g, ''); return d.slice(-10); }
+
+/* ------------------------------------------------------------------
+   3. TEMPLATE FINGERPRINT  (Detect)
+   Scam call-centres reuse scripts. Same script + different app name = likely same operator.
+------------------------------------------------------------------ */
+function normaliseTemplate(text) {
+  return String(text || '').toLowerCase()
+    .replace(/\b[a-z0-9._-]{2,}@[a-z]{2,}\b/g, ' upi ')
+    .replace(/(?:\+91[\s-]?)?\b[6-9]\d{4}[\s-]?\d{5}\b/g, ' phone ')
+    .replace(/(rs\.?|inr|₹)\s*[\d,]+/g, ' amount ')
+    .replace(/\d+/g, ' n ')
+    .replace(/[^a-z\s]/g, ' ')
+    .split(/\s+/).filter(Boolean);
+}
+function normaliseScript(text) { return normaliseTemplate(text).join(' ').slice(0, 600); }
+function shingles(words, k) { const s = new Set(); for (let i = 0; i + k <= words.length; i++) s.add(words.slice(i, i + k).join(' ')); return s; }
+function templateSimilarity(a, b) {
+  const A = shingles(normaliseTemplate(a), 3), B = shingles(normaliseTemplate(b), 3);
+  if (!A.size || !B.size) return 0;
+  let inter = 0; A.forEach(x => { if (B.has(x)) inter++; });
+  return inter / (A.size + B.size - inter);
+}
+
+/* ------------------------------------------------------------------
+   4. SCAM GRAPH  (Detect + Reform · SDG 16.4)
+   Union-find over reports. Two reports join the same operator when they share
+   a UPI collection ID, a recovery phone number, or a near-identical script.
+   An operator is published only after K distinct reporters, so one angry
+   person can't get a rival listed.
+------------------------------------------------------------------ */
+const PUBLISH_THRESHOLD = 3;
+const TEMPLATE_LINK = 0.5;
+function buildGraph(reports) {
+  const n = reports.length, parent = reports.map((_, i) => i);
+  const find = i => parent[i] === i ? i : (parent[i] = find(parent[i]));
+  const union = (a, b, why) => { const ra = find(a), rb = find(b); if (ra !== rb) parent[rb] = ra; edges.push({ a, b, why }); };
+  const edges = [];
+  const byKey = {};
+  reports.forEach((r, i) => {
+    (r.upi || []).forEach(u => (byKey['upi:' + u] = byKey['upi:' + u] || []).push(i));
+    (r.phones || []).forEach(p => (byKey['phone:' + p] = byKey['phone:' + p] || []).push(i));
+  });
+  Object.entries(byKey).forEach(([k, idx]) => { for (let j = 1; j < idx.length; j++) union(idx[0], idx[j], k.startsWith('upi') ? 'same UPI ID' : 'same phone number'); });
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    if (reports[i].text && reports[j].text && templateSimilarity(reports[i].text, reports[j].text) >= TEMPLATE_LINK) union(i, j, 'same message script');
+  }
+  const groups = {};
+  reports.forEach((r, i) => { const g = find(i); (groups[g] = groups[g] || []).push(i); });
+  const clusters = Object.values(groups).map((idx, ci) => {
+    const rs = idx.map(i => reports[i]);
+    const reporters = uniq(rs.map(r => r.reporter));
+    const apps = uniq(rs.map(r => r.app).filter(Boolean));
+    const firstSeen = Math.min(...rs.map(r => r.day || 0));
+    return {
+      idx, apps,
+      upi: uniq(rs.flatMap(r => r.upi || [])), phones: uniq(rs.flatMap(r => r.phones || [])),
+      reports: rs.length, reporters: reporters.length,
+      published: reporters.length >= PUBLISH_THRESHOLD,
+      firstSeen,
+      links: edges.filter(e => idx.includes(e.a))
+    };
+  }).sort((a, b) => b.reporters - a.reporters || b.apps.length - a.apps.length);
+  clusters.forEach((c, i) => { c.id = 'OP-' + String(i + 1).padStart(2, '0'); });
+  return { clusters, edges };
+}
+
+/* ------------------------------------------------------------------
+   5. EVIDENCE CHAIN  (Protect + Respond · SDG 16.3)
+   Each entry's SHA-256 covers the previous entry's hash, so editing or deleting
+   any earlier item breaks every hash after it. The Bharatiya Sakshya Adhiniyam
+   Section 63 certificate (Schedule, Part A) asks for a hash of the electronic record.
+------------------------------------------------------------------ */
+const GENESIS = '0'.repeat(64);
+async function sha256Hex(str, subtle) {
+  const s = subtle || (root.crypto && root.crypto.subtle);
+  const buf = await s.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function entryPayload(prev, e) { return [prev, e.ts, e.kind, e.text].join('|'); }
+async function appendEntry(chain, e, subtle) {
+  const prev = chain.length ? chain[chain.length - 1].hash : GENESIS;
+  const entry = { ts: e.ts, kind: e.kind, text: e.text, prev };
+  entry.hash = await sha256Hex(entryPayload(prev, entry), subtle);
+  return chain.concat([entry]);
+}
+async function verifyChain(chain, subtle) {
+  let prev = GENESIS;
+  for (let i = 0; i < chain.length; i++) {
+    const e = chain[i];
+    if (e.prev !== prev) return { ok: false, brokenAt: i };
+    const h = await sha256Hex(entryPayload(prev, e), subtle);
+    if (h !== e.hash) return { ok: false, brokenAt: i };
+    prev = e.hash;
+  }
+  return { ok: true, brokenAt: -1 };
+}
+
+/* ------------------------------------------------------------------
+   6. COMPLAINT PACKET  (Respond · SDG 16.3)
+   Builds text the victim files themselves. It never auto-files.
+------------------------------------------------------------------ */
+function buildPacket(o) {
+  const L = [];
+  const line = s => L.push(s);
+  line('LOAN APP HARASSMENT — COMPLAINT PACKET');
+  line('Prepared with LoanShield on ' + o.date + '. Review every line before you file.');
+  line('');
+  line('1. COMPLAINANT');
+  line('Name: ' + (o.name || '[your name]'));
+  line('Phone / email for contact: ' + (o.contact || '[your contact]'));
+  line('City / district: ' + (o.city || '[your city]'));
+  line('');
+  line('2. WHAT HAPPENED');
+  line(o.summary || '[Describe in your own words: when you borrowed, what you received, when the threats began.]');
+  if (o.truth) {
+    line('Loan amount promised: Rs ' + fmt(o.truth.promised) + '. Amount actually received: Rs ' + fmt(o.truth.received) + '.');
+    line('Repayment demanded: Rs ' + fmt(o.truth.repay) + ' in ' + o.truth.days + ' days (effective yearly cost about ' + fmt(Math.round(o.truth.apr)) + '%).');
+  }
+  line('App name(s) used by the lender: ' + ((o.apps && o.apps.length) ? o.apps.join(', ') : '[app name]'));
+  line('');
+  line('3. IDENTIFIERS USED BY THE HARASSERS');
+  line('UPI IDs they asked me to pay: ' + (o.ids.upi.length ? o.ids.upi.join(', ') : 'none recorded'));
+  line('Phone numbers that called or messaged me: ' + (o.ids.phones.length ? o.ids.phones.map(maskPhone).join(', ') : 'none recorded') + ' (full numbers in the evidence below)');
+  line('Links or APK files they sent: ' + (o.ids.links.length ? o.ids.links.join(', ') : 'none recorded'));
+  if ((o.rights || []).length) {
+    line('');
+    line('RULES THAT MAY HAVE BEEN BROKEN (to be confirmed by legal aid or police)');
+    o.rights.forEach(r => line('- ' + r.text));
+  }
+  if (o.cluster) {
+    line('');
+    line('4. LINKED REPORTS');
+    line('These identifiers match community operator ' + o.cluster.id + ': ' + o.cluster.reports + ' reports from ' + o.cluster.reporters + ' people, across ' + o.cluster.apps.length + ' app names (' + o.cluster.apps.join(', ') + ').');
+  }
+  line('');
+  line((o.cluster ? '5' : '4') + '. EVIDENCE (hash-chained, SHA-256)');
+  line('Chain check: ' + (o.chainOk ? 'intact, no entry altered since it was saved.' : 'BROKEN at entry ' + (o.brokenAt + 1) + '. Do not rely on entries from that point.'));
+  (o.evidence || []).forEach((e, i) => {
+    line('[' + (i + 1) + '] ' + new Date(e.ts).toISOString() + ' | ' + e.kind);
+    line('    "' + e.text.replace(/\s+/g, ' ').slice(0, 280) + '"');
+    line('    SHA-256: ' + e.hash);
+  });
+  if (!(o.evidence || []).length) line('No evidence saved yet. Save each threatening message in the evidence vault first.');
+  line('');
+  line('WHERE TO FILE');
+  line('- National Cybercrime Helpline: call 1930, or file at cybercrime.gov.in (category: financial fraud / online harassment).');
+  line('- Report the calls or messages on Chakshu: sancharsaathi.gov.in.');
+  line('- If the lender claimed to be a bank or NBFC, check the RBI DLA directory and tell the RBI.');
+  line('- For a court, ask for a Section 63 certificate (Bharatiya Sakshya Adhiniyam, 2023). It records the hash values listed above.');
+  return L.join('\n');
+}
+
+/* ------------------------------------------------------------------
+   7. RIGHTS MAP  (Respond · SDG 16.3)
+   Each threat type is matched to the rule it appears to break, so the
+   victim and the police see the offence, not just the insult.
+   Shown as "may apply"; legal aid confirms.
+------------------------------------------------------------------ */
+const RIGHTS = {
+  rbi_conduct: { short: 'RBI recovery rules', text: 'RBI rules for recovery agents (12 Aug 2022): no intimidation, threats, anonymous or persistent calls.' },
+  rbi_hours:   { short: 'RBI calling hours',  text: 'RBI rules for recovery agents (12 Aug 2022): no calls before 8 am or after 7 pm.' },
+  bns351:      { short: 'BNS Sec. 351',       text: 'Bharatiya Nyaya Sanhita Sec. 351: criminal intimidation.' },
+  bns308:      { short: 'BNS Sec. 308',       text: 'Bharatiya Nyaya Sanhita Sec. 308: extortion (a threat used to make you pay).' },
+  bns356:      { short: 'BNS Sec. 356',       text: 'Bharatiya Nyaya Sanhita Sec. 356: defamation (calling you a fraud or thief to others).' },
+  it67:        { short: 'IT Act Sec. 67',     text: 'Information Technology Act Sec. 67: sending obscene material electronically.' }
+};
+const CAT_RIGHTS = { contacts: ['rbi_conduct', 'bns351'], image: ['bns351', 'it67'], legal: ['bns351', 'rbi_conduct'], shame: ['bns356'], violence: ['bns351'] };
+const THREAT_CATS = ['contacts', 'image', 'legal', 'shame', 'violence'];
+function rightsFor(scan, text) {
+  const ids = new Set();
+  scan.hits.forEach(h => (CAT_RIGHTS[h.cat] || []).forEach(r => ids.add(r)));
+  const threat = scan.hits.some(h => THREAT_CATS.includes(h.cat) && h.cat !== 'shame');
+  const demand = scan.hits.some(h => h.cat === 'urgency') || scan.ids.upi.length > 0 || /\b(pay|paisa|bhejo|transfer|repay)\b/i.test(text || '');
+  if (threat && demand) ids.add('bns308');
+  callTimes(text).filter(t => t.outside).length && ids.add('rbi_hours');
+  return [...ids].map(id => ({ id, ...RIGHTS[id] }));
+}
+
+/* Times written in a note ("10:40 pm", "22:40", "6 am") checked against RBI's 8 am to 7 pm window. */
+function callTimes(text) {
+  const out = [];
+  const t = String(text || '');
+  const re12 = /\b(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm|a\.m\.|p\.m\.)/gi;
+  let m;
+  while ((m = re12.exec(t)) !== null) {
+    let h = +m[1] % 12; const min = +(m[2] || 0);
+    if (/p/i.test(m[3])) h += 12;
+    if (+m[1] <= 12) out.push({ raw: m[0], minutes: h * 60 + min });
+  }
+  const re24 = /\b([01]?\d|2[0-3]):([0-5]\d)\b(?!\s*(am|pm|a\.m|p\.m))/gi;
+  while ((m = re24.exec(t)) !== null) out.push({ raw: m[0], minutes: +m[1] * 60 + +m[2] });
+  return out.map(x => ({ ...x, outside: x.minutes < 8 * 60 || x.minutes > 19 * 60 }));
+}
+
+/* ------------------------------------------------------------------
+   8. CONTACT SHIELD  (Protect · SDG 10.2)
+   The scammers' strongest weapon is your contact list. Warn your
+   contacts first, so their messages arrive already discredited.
+------------------------------------------------------------------ */
+const SHIELD_TEXT = {
+  en: n => `Important: an illegal loan app is harassing me. They may send you messages or edited (morphed) photos about me, or call me a fraud. All of it is false, and it is a crime. Please don't reply, don't pay anything and don't forward it. Take a screenshot and send it to me so I can add it to my police complaint. Thank you for standing with me.${n ? ' — ' + n : ''}`,
+  hi: n => `ज़रूरी सूचना: एक गैरकानूनी लोन ऐप मुझे परेशान कर रहा है। हो सकता है वे आपको मेरे बारे में संदेश या बदली हुई (मॉर्फ की गई) तस्वीरें भेजें, या मुझे धोखेबाज़ कहें। यह सब झूठ है और अपराध है। कृपया जवाब न दें, कोई पैसा न भेजें और कुछ भी आगे न भेजें। उसका स्क्रीनशॉट लेकर मुझे भेज दें, ताकि मैं उसे पुलिस शिकायत में जोड़ सकूँ।${n ? ' — ' + n : ''}`,
+  ta: n => `முக்கிய அறிவிப்பு: ஒரு சட்டவிரோத கடன் செயலி என்னைத் துன்புறுத்துகிறது. அவர்கள் என்னைப் பற்றி உங்களுக்குச் செய்திகள் அல்லது மாற்றியமைக்கப்பட்ட புகைப்படங்களை அனுப்பலாம், அல்லது நான் மோசடி செய்பவர் என்று சொல்லலாம். இவை அனைத்தும் பொய்; இது ஒரு குற்றம். தயவுசெய்து பதில் அனுப்ப வேண்டாம், பணம் அனுப்ப வேண்டாம், எதையும் பகிர வேண்டாம். அதை ஸ்கிரீன்ஷாட் எடுத்து எனக்கு அனுப்புங்கள்; நான் அதை என் காவல்துறை புகாரில் சேர்க்கிறேன்.${n ? ' — ' + n : ''}`
+};
+function shieldMessage(lang, name) { return (SHIELD_TEXT[lang] || SHIELD_TEXT.en)(String(name || '').trim().slice(0, 60)); }
+
+/* ---------- helpers ---------- */
+function uniq(a) { return [...new Set(a)]; }
+function fmt(n) { return Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+function pct(x) { return Math.round(x * 100) + '%'; }
+function maskPhone(p) { const d = String(p); return d.length === 10 ? d.slice(0, 2) + 'xxxxx' + d.slice(7) : d; }
+
+const API = { normaliseScript, RIGHTS, rightsFor, callTimes, shieldMessage, truthCheck, RED_FLAG_QUESTIONS, LEXICON, scanMessage, extractIdentifiers, templateSimilarity, buildGraph, PUBLISH_THRESHOLD, GENESIS, sha256Hex, appendEntry, verifyChain, buildPacket, fmt, maskPhone };
+if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.LS = API;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* LoanShield sample data. All app names, UPI IDs and phone numbers are fictional.
+   The test set was written by the project team to check the scanner's logic.
+   It is not real victim data; field accuracy is measured in the pilot. */
+(function (root) {
+'use strict';
+
+const TEST_SET = [
+  // label 1 = harassment, 0 = not harassment
+  [1, 'Pay now or we will send your morphed photos to all your contacts.'],
+  [1, 'Last warning. Rs 4500 pending. Your family and boss will know you are a fraud by evening.'],
+  [1, 'Legal notice issued. FIR will be filed at cyber cell, arrest warrant tomorrow. Pay within 2 hours.'],
+  [1, 'Tum chor ho. Abhi pay karo warna sabko bhej denge tumhari photo.'],
+  [1, 'We have your contact list. Every number will get a message that you are a thief.'],
+  [1, 'Ghar walon ko bata denge ki tum defaulter ho. Turant paisa bhejo.'],
+  [1, 'Your photo will be made viral on WhatsApp groups if payment not done today.'],
+  [1, 'Digital arrest initiated by CBI. Transfer the dues to recovery.desk@fakebank to stop it.'],
+  [1, 'Pay or we will come to your house. We know where you live.'],
+  [1, 'Your colleagues have been informed that you are a cheater. Next is your office HR.'],
+  [1, 'Final notice: non-bailable warrant will be issued. Call 9000012345 to settle.'],
+  [1, 'Besharam, loan lekar bhaag gaya. Rishtedaar ko call kar rahe hain.'],
+  [1, 'Pay double the amount or we leak your photos. Photo leak to everyone you know.'],
+  [1, 'Jaan se maar denge agar paisa nahi diya.'],
+  [1, 'Your relatives will receive your edited photo tonight.'],
+  [1, 'Police complaint registered against you for loan fraud. Pay penalty immediately.'],
+  [1, 'Sab ko bata denge office mein. Tumhare boss ka number hai humare paas.'],
+  [1, 'You beggar. Pay today or your friends get the screenshots.'],
+  [1, 'We will message everyone in your phone that you ran away with our money.'],
+  [1, 'Court notice has been sent to your address. Jail ho jayegi.'],
+  [1, 'Your nude photos will be sent to your family.'],
+  [1, 'Tumhari photo viral kar denge. Last chance.'],
+  [1, 'Loser. Cannot repay 3000? Everyone you know will hear about it.'],
+  [1, 'We will break your phone and your legs if you ignore this call.'],
+  [1, 'Pay to recovery@fakepay now. Gharwalon ko sab pata chalega.'],
+  [0, 'Dear customer, your EMI of Rs 2,150 is due on 05-Oct. Pay on time to avoid a late fee.'],
+  [0, 'Your OTP for login is 482913. Do not share it with anyone.'],
+  [0, 'Beware of fraud calls. Our bank never asks for your PIN or OTP.'],
+  [0, 'Reminder: your loan instalment is overdue by 3 days. Overdue charge applies. Pay now via the app.'],
+  [0, 'Hi beta, call your relatives in Madurai today, it is Paati’s birthday.'],
+  [0, 'Meeting moved to 4pm. Please inform your boss.'],
+  [0, 'Your order has been shipped and will arrive tomorrow.'],
+  [0, 'Congratulations! You are pre-approved for a credit card. Apply at the branch.'],
+  [0, 'Your electricity bill of Rs 1,240 is due. Pay before the 10th to avoid a penalty.'],
+  [0, 'Police verification for your passport is scheduled on Monday.'],
+  [0, 'Movie tonight? The new thriller has a court scene everyone is talking about.'],
+  [0, 'Your KYC is pending. Update it through the official app or visit the branch.'],
+  [0, 'Sir, the processing fee for your home loan is 0.5%. Documents attached.'],
+  [0, 'Your parcel is held. Pay Rs 25 at http://parcel-help.example to release it.'],
+  [0, 'Thanks for repaying your loan. Your account is now closed.'],
+  [0, 'Mummy, I reached the hostel. Will call later.'],
+  [0, 'Final notice: your gym membership ends today. Renew to keep your slot.'],
+  [0, 'Arrest of the gang that ran fake loan apps was reported in today’s paper.'],
+  [0, 'Your credit score improved by 12 points this month.'],
+  [0, 'Don’t share your photo with unknown apps, beta.'],
+  [0, 'Payment received. Rs 3,000 credited to your loan account.'],
+  [0, 'Office mein party hai Friday ko, aa jana.'],
+  [0, 'We noticed a late payment. You can request a new date in the app at no extra charge.'],
+  [0, 'The cyber cell workshop on online safety is at 11am in the auditorium.'],
+  [0, 'Your SIP of Rs 1,000 was processed successfully.']
+];
+
+/* Community reports feeding the Scam Graph. Days count from the start of the sample period. */
+const SCRIPT_A = 'Dear customer your loan of Rs 4500 is overdue. Pay to recovery.desk@fakebank within 2 hours or we will send a message to all your contacts that you are a fraud.';
+const SCRIPT_B = 'Final warning from legal team. FIR and arrest warrant ready. Call 9000077140 today or police will visit your office.';
+const SAMPLE_REPORTS = [
+  { reporter: 'R1', app: 'InstaCash Pro', day: 2,  upi: ['recovery.desk@fakebank'], phones: ['9000011221'], text: SCRIPT_A },
+  { reporter: 'R2', app: 'PaisaJet',      day: 9,  upi: [], phones: ['9000011221'], text: 'Dear customer your loan of Rs 3000 is overdue. Pay within 2 hours or we will send a message to all your contacts that you are a fraud.' },
+  { reporter: 'R3', app: 'LoanGully',     day: 15, upi: ['collect.lg@fakepay'], phones: [], text: 'Dear customer your loan of Rs 6200 is overdue. Pay to collect.lg@fakepay within 2 hours or we will send a message to all your contacts that you are a fraud.' },
+  { reporter: 'R4', app: 'LoanGully',     day: 21, upi: ['collect.lg@fakepay'], phones: ['9000033118'], text: 'Your photos will be morphed and sent to your family.' },
+  { reporter: 'R5', app: 'QuickMoney Max', day: 5, upi: [], phones: ['9000077140'], text: SCRIPT_B },
+  { reporter: 'R6', app: 'MoneyBolt',     day: 18, upi: ['mb.recover@fakebank'], phones: ['9000077140'], text: 'Pay now. Your boss will get a call.' },
+  { reporter: 'R7', app: 'MoneyBolt',     day: 27, upi: ['mb.recover@fakebank'], phones: [], text: 'Final warning from legal team. FIR and arrest warrant ready. Call 9000077141 today or police will visit your office.' },
+  { reporter: 'R8', app: 'CashNest',      day: 33, upi: ['cn.dues@fakepay'], phones: ['9000098001'], text: 'Pay the penalty today.' }
+];
+
+/* Example a visitor sees pre-filled in the scanner (fictional). */
+const EXAMPLE_MESSAGE = 'LoanGully recovery: Rs 6200 overdue. Pay to collect.lg@fakepay within 2 hours or your morphed photo goes to all your contacts. FIR ready. Call 9000033118.';
+
+const API = { TEST_SET, SAMPLE_REPORTS, EXAMPLE_MESSAGE };
+if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.LSDATA = API;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+(function () {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ico = id => `<svg class="icon" aria-hidden="true"><use href="#${id}"/></svg>`;
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+
+/* ---------------- shared state ---------------- */
+const state = {
+  truth: null,          // last loan check {promised, received, repay, days, apr, app}
+  lastScan: null,       // {text, result}
+  chain: store.get('loanshield_chain_v2', []),
+  myReports: store.get('loanshield_reports_v2', []),
+  graph: null,
+  mode: 'sample',
+  live: { on: false, db: null, uid: null, canWrite: false, reports: [] },
+  downloads: null,
+  sample: null
+};
+
+/* ---------------- toast ---------------- */
+let toastEl, toastT;
+function toast(msg) {
+  if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'toast'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl); }
+  toastEl.textContent = msg; toastEl.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 2600);
+}
+
+/* ---------------- toolkit tabs ---------------- */
+const tabs = $$('.app-tab');
+function selectTab(i, focus) {
+  tabs.forEach((t, j) => {
+    const on = i === j;
+    t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1;
+    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+  });
+  if (focus) tabs[i].focus();
+  if (tabs[i].id === 't-packet') refreshPacket();
+}
+tabs.forEach((t, i) => t.addEventListener('click', () => selectTab(i)));
+$('#app-tabs').addEventListener('keydown', e => {
+  const i = tabs.indexOf(document.activeElement); if (i < 0) return;
+  let n = null;
+  if (e.key === 'ArrowRight') n = (i + 1) % tabs.length;
+  if (e.key === 'ArrowLeft') n = (i - 1 + tabs.length) % tabs.length;
+  if (e.key === 'Home') n = 0; if (e.key === 'End') n = tabs.length - 1;
+  if (n !== null) { e.preventDefault(); selectTab(n, true); }
+});
+$$('[data-open-tab]').forEach(a => a.addEventListener('click', () => selectTab(+a.dataset.openTab)));
+
+/* ---------------- 1. loan truth check ---------------- */
+const qBox = $('#c-questions');
+const preTicked = ['apk', 'perms'];
+LS.RED_FLAG_QUESTIONS.forEach(q => {
+  qBox.insertAdjacentHTML('beforeend', `<label class="check"><input type="checkbox" value="${q.id}" ${preTicked.includes(q.id) ? 'checked' : ''}><span>${esc(q.q)}</span></label>`);
+});
+function runCheck() {
+  const v = id => $(id).value;
+  const answers = $$('#c-questions input:checked').map(i => i.value);
+  const input = { promised: v('#c-promised'), received: v('#c-received'), repay: v('#c-repay'), days: v('#c-days'), answers };
+  const r = LS.truthCheck(input);
+  const box = $('#check-result');
+  if (r.error) { box.className = 'result'; box.innerHTML = `<p style="margin:0">${esc(r.error)}</p>`; state.truth = null; return; }
+  state.truth = { promised: +input.promised, received: +input.received, repay: +input.repay, days: +input.days, apr: r.apr, app: v('#c-app').trim() };
+  const label = { danger: 'High risk. Don’t borrow here.', caution: 'Be careful. Ask questions first.', ok: 'No major warning signs.' }[r.verdict];
+  box.className = 'result ' + r.verdict;
+  box.innerHTML = `
+    <div><span class="pill ${r.verdict}">${esc(label)}</span></div>
+    <div><div class="big-figure">${LS.fmt(Math.round(r.apr))}%<small>a year, the real cost</small></div></div>
+    <div class="minis">
+      <div class="mini"><b>₹${LS.fmt(r.totalCost)}</b><span>you pay on top of what you got</span></div>
+      <div class="mini"><b>₹${LS.fmt(r.upfrontCut)}</b><span>cut before it reached you</span></div>
+      <div class="mini"><b>₹${LS.fmt(Math.round(r.perDay))}</b><span>cost per day</span></div>
+    </div>
+    ${r.flags.length ? `<ul class="flags">${r.flags.map(f => `<li><span class="sev s${f.sev}" aria-hidden="true"></span><span>${esc(f.text)}</span></li>`).join('')}</ul>` : ''}
+    <p class="small muted" style="margin:0">${r.verdict === 'ok'
+      ? 'Still ask for the Key Fact Statement and keep a copy.'
+      : 'A safer route: ask your SHG or a microfinance institution for a small loan, or check RBI’s DLA directory for a listed lender.'}</p>`;
+}
+['#c-promised', '#c-received', '#c-repay', '#c-days', '#c-app'].forEach(id => $(id).addEventListener('input', runCheck));
+qBox.addEventListener('change', runCheck);
+$('#check-form').addEventListener('submit', e => { e.preventDefault(); runCheck(); });
+
+/* ---------------- 2. threat scanner ---------------- */
+function highlight(text, hits) {
+  const phrases = hits.flatMap(h => h.phrases).sort((a, b) => b.length - a.length);
+  if (!phrases.length) return esc(text);
+  const re = new RegExp('(' + phrases.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
+  return text.split(re).map((part, i) => i % 2 ? `<mark>${esc(part)}</mark>` : esc(part)).join('');
+}
+function idChips(ids) {
+  const c = [];
+  ids.upi.forEach(u => c.push(`<span class="chip"><span class="k">UPI</span>${esc(u)}</span>`));
+  ids.phones.forEach(p => c.push(`<span class="chip"><span class="k">Phone</span>${esc(p)}</span>`));
+  ids.links.forEach(l => c.push(`<span class="chip"><span class="k">Link</span>${esc(l)}</span>`));
+  return c.join('');
+}
+function alreadyReported(text) { return state.myReports.some(r => r.text === text); }
+function runScan() {
+  const text = $('#scan-input').value.trim();
+  const box = $('#scan-result');
+  if (!text) {
+    box.className = 'result';
+    box.innerHTML = '<div class="empty" style="border:0;padding:.5rem">Paste a message on the left, then press <b>Scan message</b>.</div>';
+    state.lastScan = null; return;
+  }
+  const r = LS.scanMessage(text);
+  state.lastScan = { text, result: r };
+  const hasIds = r.ids.upi.length + r.ids.phones.length + r.ids.links.length > 0;
+  const canReport = (r.ids.upi.length + r.ids.phones.length) > 0;
+  const reported = alreadyReported(text);
+  box.className = 'result ' + r.level;
+  box.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;justify-content:space-between">
+      <span class="pill ${r.level}">${esc(r.levelLabel)}</span>
+      <span class="num small muted">Threat score ${r.score} / 100</span>
+    </div>
+    <div class="meter ${r.level}" role="img" aria-label="Threat score ${r.score} out of 100"><i style="width:${r.score}%"></i></div>
+    <div class="preview">${highlight(text, r.hits)}</div>
+    ${r.hits.length ? `<ul class="flags">${r.hits.map(h => `<li><span class="sev ${h.w >= 40 ? 's3' : ''}" aria-hidden="true"></span><span><b>${esc(h.label)}</b> · “${h.phrases.map(esc).join('”, “')}”</span></li>`).join('')}</ul>` : '<p class="muted small" style="margin:0">No threat words found. If it still feels wrong, save it anyway.</p>'}
+    ${hasIds ? `<div><p class="small" style="margin:0 0 .4rem;font-weight:700">Identifiers the harassers used</p><div class="chips">${idChips(r.ids)}</div></div>` : ''}
+    ${(() => { const rights = LS.rightsFor(r, text); return rights.length ? `<div><p class="small" style="margin:0 0 .45rem;font-weight:700">Rules this may break</p><ul class="rights">${rights.map(x => `<li><span class="law">${esc(x.short)}</span><span>${esc(x.text.replace(/^[^:]+:\s*/, ''))}</span></li>`).join('')}</ul></div>` : ''; })()}
+    ${r.needsSupport ? `<div class="support"><p><b>This is a crime, and you are not alone.</b> Don’t pay more to make it stop. Save it, then report.</p><div class="nums"><span>Cybercrime helpline <b>1930</b></span><span>Tele-MANAS, free 24×7 <b>14416</b></span></div><p style="margin:.6rem 0 0"><button class="link-btn" type="button" id="go-shield">Warn your contacts before they do →</button></p></div>` : ''}
+    <div class="actions">
+      <button class="btn g" type="button" id="save-scan">${ico('i-lock')}Save to evidence vault</button>
+      ${canReport ? `<button class="btn ghost" type="button" id="report-scan" ${reported ? 'disabled' : ''}>${ico('i-link')}${reported ? 'Added to scam graph' : 'Add to scam graph'}</button>` : ''}
+    </div>
+    ${canReport && !reported ? `<p class="small muted" style="margin:0">${state.live.canWrite ? 'Adds the UPI IDs, numbers and wording to the shared graph. Never your name or contacts.' : 'Adds the UPI IDs, numbers and wording to the graph on this device.'}</p>` : ''}
+    ${state.sample ? `<div class="ai-box" id="ai-box"><button class="btn ghost" type="button" id="ai-btn">${ico('i-brain')}Ask AI for a second opinion</button><p class="small muted" style="margin:.4rem 0 0">For Tamil, Telugu, Bengali or any language the word list misses. This sends the message text to Claude.</p></div>` : ''}`;
+  $('#save-scan').addEventListener('click', () => addToVault('message', text));
+  const rep = $('#report-scan'); if (rep) rep.addEventListener('click', () => reportScan(text, r));
+  const gs = $('#go-shield'); if (gs) gs.addEventListener('click', () => selectTab(tabs.findIndex(t => t.id === 't-shield'), true));
+  const ai = $('#ai-btn'); if (ai) ai.addEventListener('click', () => askAI(text));
+}
+
+/* ---------------- AI second opinion (optional, sends text to Claude) ---------------- */
+let aiCtl = null;
+async function askAI(text) {
+  const box = $('#ai-box'); if (!box || !state.sample) return;
+  if (aiCtl) aiCtl.abort(); aiCtl = new AbortController();
+  box.innerHTML = '<p class="small muted" style="margin:0">Asking Claude…</p>';
+  const prompt = 'You review messages that victims of illegal Indian loan apps receive. Decide whether the message below is harassment by a loan recovery agent. ' +
+    'Reply with JSON only, in this exact shape: {"harassment": true|false, "language": "<language name in English>", "threats": ["<short English phrase>", ...], "summary": "<one or two plain English sentences on what the message says and threatens>", "advice": "<one sentence of practical advice for the victim>"}. ' +
+    'Threat phrases can include: threat to message contacts, threat to misuse photos, fake legal or police threat, name-calling, threat of violence, pressure to pay, extra charges. Do not invent facts.\n\nMESSAGE:\n' + text.slice(0, 3000);
+  try {
+    const a = await state.sample.json(prompt, { modelTier: 'quick', signal: aiCtl.signal });
+    const threats = Array.isArray(a.threats) ? a.threats : [];
+    box.innerHTML = `<div class="ai-answer"><p style="margin:0 0 .35rem"><span class="pill ${a.harassment ? 'high' : 'clear'}">${a.harassment ? 'AI: harassment' : 'AI: not harassment'}</span> <span class="small muted">${esc(a.language || '')}</span></p>
+      <p style="margin:0 0 .4rem">${esc(a.summary || '')}</p>
+      ${threats.length ? `<div class="chips" style="margin-bottom:.4rem">${threats.map(t => `<span class="chip">${esc(t)}</span>`).join('')}</div>` : ''}
+      <p class="small" style="margin:0"><b>Advice:</b> ${esc(a.advice || '')}</p>
+      <p class="small muted" style="margin:.4rem 0 0">A second opinion from Claude. The word-list result above is what goes into your evidence.</p></div>`;
+  } catch (e) {
+    const msg = e && e.code === 'rate_limited' ? 'Too many requests. Try again in a minute.'
+      : e && (e.code === 'not_granted' || e.code === 'declined') ? 'AI second opinion is off for this page. The word-list result above still stands.'
+      : 'The AI second opinion isn’t available right now. The word-list result above still stands.';
+    box.innerHTML = `<p class="small muted" style="margin:0">${msg}</p>`;
+  }
+}
+$('#scan-input').value = LSDATA.EXAMPLE_MESSAGE;
+$('#scan-btn').addEventListener('click', runScan);
+$('#scan-clear').addEventListener('click', () => { $('#scan-input').value = ''; runScan(); $('#scan-input').focus(); });
+
+async function reportScan(text, r) {
+  if (alreadyReported(text)) return;
+  const app = guessApp(text) || (state.truth && state.truth.app) || 'Unnamed app';
+  const script = LS.normaliseScript(text);
+  if (state.live.canWrite) {
+    const ok = await pushLiveReport({ app: app.slice(0, 60), upi: r.ids.upi.slice(0, 5), phones: r.ids.phones.slice(0, 5), script, ts: Date.now() });
+    if (ok) {
+      state.myReports.push({ reporter: 'YOU', app, day: 0, upi: r.ids.upi, phones: r.ids.phones, text, mine: true, shared: true });
+      store.set('loanshield_reports_v2', state.myReports);
+      setGraphMode('live'); runScan();
+      const c = state.graph.clusters.find(c => c.idx.some(i => allReports()[i].mine));
+      toast(c && c.apps.length > 1 ? `Linked to ${c.id}: ${c.reporters} people, ${c.apps.length} app names` : 'Added to the shared scam graph');
+      return;
+    }
+  }
+  state.myReports.push({ reporter: 'YOU', app, day: 40, upi: r.ids.upi, phones: r.ids.phones, text, mine: true });
+  store.set('loanshield_reports_v2', state.myReports);
+  setGraphMode('sample');
+  const c = state.graph.clusters.find(c => c.idx.some(i => allReports()[i].mine && allReports()[i].text === text));
+  runScan();
+  if (c && c.apps.length > 1) toast(`Linked to ${c.id}: ${c.reporters} people, ${c.apps.length} app names`);
+  else toast('Added to the scam graph as a new operator');
+}
+function guessApp(text) {
+  const names = [...new Set(LSDATA.SAMPLE_REPORTS.map(r => r.app))];
+  return names.find(n => text.toLowerCase().includes(n.toLowerCase()));
+}
+
+
+/* ---------------- Contact Shield ---------------- */
+function shieldText() { return LS.shieldMessage($('input[name=sh-lang]:checked').value, $('#sh-name').value); }
+function renderShield() { $('#sh-out').value = shieldText(); $('#sh-wa').href = 'https://wa.me/?text=' + encodeURIComponent(shieldText()); }
+$$('input[name=sh-lang]').forEach(r => r.addEventListener('change', renderShield));
+$('#sh-name').addEventListener('input', renderShield);
+$('#sh-copy').addEventListener('click', () => { copyText(shieldText(), $('#sh-out'), 'Warning copied. Paste it to your contacts.'); });
+$('#sh-wa').addEventListener('click', () => {
+  if (!state.shieldLogged) { state.shieldLogged = true; addToVault('note', 'Sent a warning to my contacts that loan-app messages about me are false (' + new Date().toLocaleString('en-IN') + ').'); }
+});
+$('#sh-log').addEventListener('click', async () => { await addToVault('note', 'Sent a warning to my contacts that loan-app messages about me are false.'); });
+renderShield();
+
+/* ---------------- 3. evidence vault ---------------- */
+function saveChain() { if (!store.set('loanshield_chain_v2', state.chain)) toast('Saved for this visit only. Your browser blocked storage.'); }
+async function addToVault(kind, text) {
+  state.chain = await LS.appendEntry(state.chain, { ts: Date.now(), kind, text });
+  saveChain();
+  await renderVault();
+  toast('Saved to evidence vault');
+}
+async function renderVault(brokenFrom) {
+  const list = $('#vault-list');
+  const n = state.chain.length;
+  const count = $('#vault-count'); count.hidden = n === 0; count.textContent = n;
+  $('#verify-btn').disabled = $('#tamper-btn').disabled = $('#clear-vault').disabled = n === 0;
+  if (!n) {
+    list.innerHTML = '<li class="empty">Nothing saved yet. Scan a message and press <b>Save to evidence vault</b>, or log a call on the right.</li>';
+    $('#chain-status').innerHTML = '';
+    return;
+  }
+  const items = brokenFrom && brokenFrom.copy ? brokenFrom.copy : state.chain;
+  list.innerHTML = items.map((e, i) => {
+    const bad = brokenFrom && brokenFrom.at > -1 && i >= brokenFrom.at;
+    return `<li class="vault-item ${bad ? 'bad' : ''}">
+      <div class="meta"><span>#${i + 1}</span><span>${esc(new Date(e.ts).toLocaleString('en-IN'))}</span><span>${esc(e.kind === 'note' ? 'Call or event note' : 'Message')}</span>${bad ? '<span style="color:var(--red-lt);font-weight:700">Hash mismatch</span>' : ''}</div>
+      <div class="txt">${esc(e.text)}</div>
+      ${(() => { const rr = LS.rightsFor(LS.scanMessage(e.text), e.text); return rr.length ? `<div class="law-row">${rr.map(x => `<span class="law" title="${esc(x.text)}">${esc(x.short)}</span>`).join('')}</div>` : ''; })()}
+      <div class="hash">SHA-256 <b>${e.hash}</b></div>
+      <div class="hash">covers previous ${e.prev === LS.GENESIS ? '(start of chain)' : e.prev.slice(0, 16) + '…'}</div>
+    </li>`;
+  }).join('');
+}
+async function verify(chain, label) {
+  const v = await LS.verifyChain(chain);
+  $('#chain-status').innerHTML = v.ok
+    ? `<span class="badge sm g">${ico('i-check')}</span><span>Chain intact. ${chain.length} item${chain.length > 1 ? 's' : ''}, none changed since saving.</span>`
+    : `<span class="badge sm">${ico('i-x')}</span><span>${label || 'Chain broken'} at item ${v.brokenAt + 1}. Everything from there on can no longer be trusted.</span>`;
+  return v;
+}
+$('#verify-btn').addEventListener('click', async () => { await renderVault(); await verify(state.chain); });
+$('#tamper-btn').addEventListener('click', async () => {
+  const copy = state.chain.map(e => ({ ...e }));
+  copy[0] = { ...copy[0], text: copy[0].text.replace(/\d/, d => String((+d + 1) % 10)) + (/\d/.test(copy[0].text) ? '' : ' (edited)') };
+  const v = await verify(copy, 'Tampering detected');
+  await renderVault({ copy, at: v.brokenAt });
+  $('#chain-status').insertAdjacentHTML('beforeend', '<span class="small muted" style="font-weight:400">This edited a copy. Your saved items are unchanged; press Verify chain to see them.</span>');
+});
+$('#clear-vault').addEventListener('click', () => { $('#clear-confirm').hidden = false; $('#clear-no').focus(); });
+$('#clear-no').addEventListener('click', () => { $('#clear-confirm').hidden = true; });
+$('#clear-yes').addEventListener('click', async () => {
+  state.chain = []; store.del('loanshield_chain_v2');
+  $('#clear-confirm').hidden = true; await renderVault(); toast('All saved items deleted');
+});
+$('#note-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const t = $('#note-text').value.trim();
+  if (t.length < 8) { $('#note-error').textContent = 'Write at least a few words: the time, the number and what was said.'; return; }
+  $('#note-error').textContent = '';
+  await addToVault('note', t); $('#note-text').value = '';
+  const late = LS.callTimes(t).filter(x => x.outside);
+  if (late.length) toast(`${late[0].raw}: RBI bars recovery calls before 8 am or after 7 pm`);
+});
+
+/* ---------------- 4. complaint packet ---------------- */
+function packetIds() {
+  const ids = { upi: [], phones: [], links: [] };
+  const texts = state.chain.map(e => e.text);
+  if (state.lastScan) texts.push(state.lastScan.text);
+  texts.forEach(t => { const x = LS.extractIdentifiers(t); ids.upi.push(...x.upi); ids.phones.push(...x.phones); ids.links.push(...x.links); });
+  Object.keys(ids).forEach(k => ids[k] = [...new Set(ids[k])]);
+  return ids;
+}
+function matchCluster(ids) {
+  const rs = allReports();
+  return state.graph.clusters.find(c => c.upi.some(u => ids.upi.includes(u)) || c.phones.some(p => ids.phones.includes(p)))
+      || null;
+}
+function packetRights() {
+  const texts = state.chain.map(e => e.text); if (state.lastScan) texts.push(state.lastScan.text);
+  const seen = new Map();
+  texts.forEach(t => LS.rightsFor(LS.scanMessage(t), t).forEach(x => seen.set(x.id, x)));
+  return [...seen.values()];
+}
+async function refreshPacket() {
+  const ids = packetIds();
+  const v = await LS.verifyChain(state.chain);
+  const cluster = matchCluster(ids);
+  const apps = [...new Set([state.truth && state.truth.app, ...(cluster ? [] : [])].filter(Boolean))];
+  const txt = LS.buildPacket({
+    date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+    name: $('#pk-name').value.trim(), contact: $('#pk-contact').value.trim(), city: $('#pk-city').value.trim(), summary: $('#pk-summary').value.trim(),
+    truth: state.truth, apps: apps.length ? apps : (cluster ? cluster.apps : []), ids, cluster: cluster && cluster.published ? cluster : null,
+    evidence: state.chain, chainOk: v.ok, brokenAt: v.brokenAt, rights: packetRights()
+  });
+  $('#packet-out').value = txt;
+  const items = [
+    [!!state.truth, state.truth ? `Loan check: ${LS.fmt(Math.round(state.truth.apr))}% a year` : 'No loan check yet (step 1)'],
+    [state.chain.length > 0, state.chain.length ? `${state.chain.length} evidence item${state.chain.length > 1 ? 's' : ''}, chain ${v.ok ? 'intact' : 'broken'}` : 'No evidence saved yet (step 3)'],
+    [ids.upi.length + ids.phones.length > 0, `${ids.upi.length} UPI ID${ids.upi.length === 1 ? '' : 's'}, ${ids.phones.length} phone number${ids.phones.length === 1 ? '' : 's'}`],
+    [!!(cluster && cluster.published), cluster ? (cluster.published ? `Linked to ${cluster.id} (${cluster.reporters} people)` : `Matches ${cluster.id}, not yet published (${cluster.reporters} of ${LS.PUBLISH_THRESHOLD} people)`) : 'No linked operator']
+  ];
+  $('#packet-inputs').innerHTML = items.map(([ok, t]) => `<li><span class="sev" style="background:${ok ? 'var(--green)' : 'var(--line-d)'}" aria-hidden="true"></span><span>${esc(t)}</span></li>`).join('');
+}
+$('#packet-form').addEventListener('submit', e => { e.preventDefault(); refreshPacket().then(() => toast('Packet built. Read it through before filing.')); });
+$('#packet-copy').addEventListener('click', () => copyText($('#packet-out').value, $('#packet-out'), 'Packet copied'));
+$('#packet-save').addEventListener('click', () => saveFile('loanshield-complaint-packet.txt', $('#packet-out').value));
+async function saveFile(name, data) {
+  if (state.downloads) {
+    try { await state.downloads.save({ filename: name, data }); toast('Saved ' + name); }
+    catch (e) { if (!e || e.code !== 'declined') toast(e && e.code === 'rate_limited' ? 'A save is already open. Try again in a moment.' : 'Saving isn\u2019t available here. Use Copy instead.'); }
+    return;
+  }
+  try {
+    const blob = data instanceof Blob ? data : new Blob([data], { type: 'text/plain' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  } catch (e) { toast('Saving is blocked here. Use Copy instead.'); }
+}
+$$('[data-deck]').forEach(b => b.addEventListener('click', async () => {
+  const f = b.dataset.deck;
+  if (!state.downloads) { location.href = 'downloads/' + f; return; }
+  b.disabled = true;
+  try { const res = await fetch('downloads/' + f); if (!res.ok) throw 0; await saveFile(f, await res.blob()); }
+  catch (e) { toast('Couldn\u2019t load the deck. Try again.'); }
+  b.disabled = false;
+}));
+function copyText(t, fallbackEl, msg) {
+  const done = () => toast(msg || 'Copied');
+  const fail = () => { if (fallbackEl && fallbackEl.select) { fallbackEl.focus(); fallbackEl.select(); toast('Selected. Press Ctrl+C or long-press to copy.'); } else toast('Copy blocked. Select the text by hand.'); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, fail); else fail();
+}
+$$('[data-copy]').forEach(b => b.addEventListener('click', () => copyText(b.dataset.copy, null, 'Copied ' + b.dataset.copy)));
+
+/* ---------------- scam graph ---------------- */
+function allReports() {
+  if (state.mode === 'live') return state.live.reports;
+  return LSDATA.SAMPLE_REPORTS.concat(state.myReports.filter(r => !r.shared));
+}
+function renderGraph() {
+  const reports = allReports();
+  state.graph = LS.buildGraph(reports);
+  $$('.seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === state.mode));
+  const live = state.mode === 'live';
+  $('#graph-status').innerHTML = live
+    ? (state.live.on ? `<span class="live-dot" aria-hidden="true"></span>Live: ${state.live.reports.length} report${state.live.reports.length === 1 ? '' : 's'} from ${new Set(state.live.reports.map(r => r.reporter)).size} ${new Set(state.live.reports.map(r => r.reporter)).size === 1 ? 'person' : 'people'}, updating as they arrive.${state.live.canWrite ? '' : ' You can read this graph; adding reports needs Contributor access.'}`
+                     : 'Live reports need you to open this page signed in to Claude. Showing nothing until then.')
+    : 'Sample data: 8 fictional reports, plus any you add on this device.';
+  if (live && !reports.length) {
+    $('#ops').innerHTML = `<div class="card empty-live"><h3>No live reports yet</h3><p>Scan a threatening message in the toolkit, then press <b>Add to scam graph</b>. It appears here for everyone with this link, and links to any operator that used the same UPI ID, number or script.</p></div>`;
+  } else {
+    $('#ops').innerHTML = state.graph.clusters.map(c => opCard(c, reports)).join('');
+  }
+  renderDash();
+}
+function setGraphMode(m) { state.mode = m; renderGraph(); }
+$$('.seg button').forEach(b => b.addEventListener('click', () => setGraphMode(b.dataset.mode)));
+
+/* ---------------- live shared graph (db capability) ---------------- */
+async function pushLiveReport(rep) {
+  try {
+    const ref = state.live.db.doc('reports/' + state.live.uid);
+    const snap = await ref.get();
+    const items = (snap.exists && Array.isArray(snap.data().items) ? snap.data().items.slice() : []).slice(-49);
+    items.push(rep);
+    await ref.set({ items, updated: Date.now() });
+    return true;
+  } catch (e) {
+    if (e && e.code === 'invalid_argument') { state.live.canWrite = false; toast('You can read the shared graph, but not add to it. Saved on this device instead.'); }
+    else if (e && e.code === 'quota_exceeded') toast('The shared graph is full. Saved on this device instead.');
+    else toast('Couldn\u2019t reach the shared graph. Saved on this device instead.');
+    return false;
+  }
+}
+function liveToReports(docs) {
+  const out = [];
+  docs.forEach(d => { const b = d.data() || {}; (Array.isArray(b.items) ? b.items : []).forEach(it => {
+    if (!it || typeof it !== 'object') return;
+    out.push({ reporter: d.id, app: String(it.app || 'Unnamed app').slice(0, 60), ts: +it.ts || 0,
+      upi: (Array.isArray(it.upi) ? it.upi : []).map(String).filter(u => /^[a-z0-9._-]{2,}@[a-z]{2,}$/i.test(u)).slice(0, 5),
+      phones: (Array.isArray(it.phones) ? it.phones : []).map(String).filter(p => /^[6-9]\d{9}$/.test(p)).slice(0, 5),
+      text: String(it.script || '').slice(0, 600), mine: d.id === state.live.uid });
+  }); });
+  const t0 = Math.min(...out.map(r => r.ts).filter(Boolean), Date.now());
+  out.forEach(r => { r.day = Math.max(0, Math.round((r.ts - t0) / 864e5)); });
+  return out;
+}
+async function startLive() {
+  const cl = window.claude && typeof window.claude.use === 'function' ? window.claude : null;
+  const use = async n => { try { return cl ? await cl.use(n) : null; } catch (e) { return null; } };
+  const [db, user, downloads, sample] = await Promise.all([use('db'), use('user'), use('downloads'), use('sample')]);
+  state.downloads = downloads; state.sample = sample;
+  if (sample && state.lastScan) runScan();
+  if (!db || !user) { renderGraph(); return; }
+  const uid = await user.id().catch(() => null);
+  const can = await user.can('data.write').catch(() => null);
+  state.live.db = db; state.live.uid = uid; state.live.on = true; state.live.canWrite = !!uid && can !== false;
+  db.collection('reports').onSnapshot(snap => {
+    state.live.reports = liveToReports(snap.docs);
+    if (state.mode === 'live') renderGraph();
+  }, () => { state.live.on = false; if (state.mode === 'live') renderGraph(); });
+  setGraphMode('live');
+}
+function opCard(c, reports) {
+  const rs = c.idx.map(i => reports[i]);
+  const mine = rs.some(r => r.mine);
+  const ids = c.upi.map(u => ({ k: 'upi', v: u })).concat(c.phones.map(p => ({ k: 'phone', v: p })));
+  const rows = Math.max(c.apps.length, ids.length, 1), RH = 46, H = rows * RH + 24, W = 760;
+  const ay = i => 24 + i * RH + (rows - c.apps.length) * RH / 2;
+  const iy = i => 24 + i * RH + (rows - ids.length) * RH / 2;
+  const AX = 250, IX = 520;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(c.id)}: ${c.apps.length} app names linked by ${ids.length} identifiers">`;
+  const seen = new Set();
+  rs.forEach(r => {
+    const a = c.apps.indexOf(r.app);
+    (r.upi || []).concat(r.phones || []).forEach(v => {
+      const j = ids.findIndex(x => x.v === v); const key = a + ':' + j;
+      if (a > -1 && j > -1 && !seen.has(key)) { seen.add(key); svg += `<line x1="${AX + 10}" y1="${ay(a)}" x2="${IX - 8}" y2="${iy(j)}" stroke="var(--mute-l)" stroke-width="1.5"/>`; }
+    });
+  });
+  const scriptPairs = new Set();
+  c.links.filter(l => l.why === 'same message script').forEach(l => {
+    const a = c.apps.indexOf(reports[l.a].app), b = c.apps.indexOf(reports[l.b].app);
+    if (a > -1 && b > -1 && a !== b) { const k = Math.min(a, b) + '-' + Math.max(a, b); if (!scriptPairs.has(k)) { scriptPairs.add(k); const y1 = ay(a), y2 = ay(b); svg += `<path d="M${AX} ${y1} C ${AX + 90} ${y1}, ${AX + 90} ${y2}, ${AX} ${y2}" fill="none" stroke="var(--mute-l)" stroke-width="2" stroke-dasharray="5 4"/>`; } }
+  });
+  c.apps.forEach((a, i) => {
+    const you = rs.some(r => r.mine && r.app === a);
+    svg += `<circle cx="${AX}" cy="${ay(i)}" r="9" fill="${you ? 'var(--green)' : 'var(--ink)'}"/><text x="${AX - 18}" y="${ay(i) + 5}" text-anchor="end" font-size="15" font-weight="700" fill="var(--ink)" font-family="var(--body)">${esc(a)}</text>`;
+  });
+  ids.forEach((x, j) => {
+    const label = x.k === 'phone' ? LS.maskPhone(x.v) : x.v;
+    svg += `<rect x="${IX - 8}" y="${iy(j) - 8}" width="16" height="16" rx="3" fill="${x.k === 'upi' ? 'var(--red)' : 'var(--amber)'}"/><text x="${IX + 18}" y="${iy(j) + 5}" font-size="14" fill="var(--ink)" font-family="var(--mono)">${esc(label)}</text>`;
+  });
+  if (!ids.length) svg += `<text x="${IX - 8}" y="${iy(0) + 5}" font-size="14" fill="var(--mute-l)" font-family="var(--body)">no shared identifiers yet</text>`;
+  svg += '</svg>';
+  return `<article class="card op ${mine ? 'you' : ''}">
+    <div class="op-head">
+      <h3>${esc(c.id)}${mine ? ' <span class="tag g flat" style="font-size:.7rem;vertical-align:middle">Includes your report</span>' : ''}</h3>
+      <span class="pill ${c.published ? 'danger' : 'watch'}">${c.published ? 'Published' : `Held: ${c.reporters} of ${LS.PUBLISH_THRESHOLD} people`}</span>
+    </div>
+    <p class="op-meta">${c.reports} report${c.reports > 1 ? 's' : ''} from ${c.reporters} ${c.reporters > 1 ? 'people' : 'person'} · ${c.apps.length} app name${c.apps.length > 1 ? 's' : ''} · first reported on day ${c.firstSeen}</p>
+    <div class="graph-wrap">${svg}</div>
+  </article>`;
+}
+function daysToPublish(c, reports) {
+  const rs = c.idx.map(i => reports[i]).sort((a, b) => a.day - b.day);
+  const seen = new Set();
+  for (const r of rs) { seen.add(r.reporter); if (seen.size >= LS.PUBLISH_THRESHOLD) return r.day - rs[0].day; }
+  return null;
+}
+function renderDash() {
+  const reports = allReports(), cl = state.graph.clusters;
+  const pub = cl.filter(c => c.published);
+  const apps = new Set(reports.map(r => r.app));
+  const dtp = pub.map(c => daysToPublish(c, reports)).filter(x => x !== null).sort((a, b) => a - b);
+  const median = dtp.length ? dtp[Math.floor((dtp.length - 1) / 2)] : '–';
+  const pubApps = pub.reduce((s, c) => s + c.apps.length, 0);
+  const tiles = [
+    [reports.length, 'reports received'],
+    [apps.size, 'app names seen'],
+    [`${pub.length} of ${cl.length}`, 'operators published'],
+    [pub.length ? (pubApps / pub.length).toFixed(1) : '–', 'app names per published operator'],
+    [median, 'median days from first report to publishing']
+  ];
+  $('#dash').innerHTML = tiles.map(([b, s]) => `<div class="card"><b>${esc(b)}</b><span>${esc(s)}</span></div>`).join('');
+}
+
+/* ---------------- ecosystem ---------------- */
+const STAGES = [
+  { name: 'Prevent', icon: 'i-calc', kind: 'community', color: 'r', sub: 'Before borrowing',
+    tagline: 'Remove the reason people reach for scam apps.',
+    tech: 'Loan Truth Check and a WhatsApp or IVR line that checks a lender against RBI’s DLA directory. Works on basic phones.',
+    people: 'SHGs and microfinance institutions offer a fair small-loan route. Student volunteers run Truth Check camps at SHG meetings.',
+    roles: [['Borrowers', 'check a loan before taking it'], ['SHGs and MFIs', 'offer the fair alternative'], ['Banks and NBFCs', 'keep their apps listed with RBI']],
+    sdg: [['s1', '1.4'], ['s1', '1.5'], ['s8', '8.10']] },
+  { name: 'Detect', icon: 'i-link', kind: 'tech', color: 'g', sub: 'Link the rebrands',
+    tagline: 'Find the operator, not just the app name.',
+    tech: 'The scam graph links reports by UPI ID, phone number and message script, then publishes an operator after 3 different people report it.',
+    people: 'Victims’ own reports are the sensor. The 3-person rule stops anyone from listing a rival out of spite.',
+    roles: [['Borrowers', 'report identifiers with consent'], ['Google Play', 'takes down lookalikes of a listed operator'], ['Telecoms', 'act on numbers reported through Chakshu']],
+    sdg: [['s16', '16.4']] },
+  { name: 'Protect', icon: 'i-shield', kind: 'tech', color: 'g', sub: 'During harassment',
+    tagline: 'Help in the moment, without reading your private messages.',
+    tech: 'Share-in threat scanner, Contact Shield warnings, call screening for numbers linked to an operator, and a hash-chained evidence vault.',
+    people: 'A severe threat shows the 1930 and Tele-MANAS numbers and offers a volunteer callback.',
+    roles: [['Borrowers', 'share and save what scares them'], ['NGO counsellors', 'call back within a day']],
+    sdg: [['s10', '10.2'], ['s16', '16.3']] },
+  { name: 'Respond', icon: 'i-doc', kind: 'community', color: 'r', sub: 'Get justice',
+    tagline: 'Evidence, plus a person who listens.',
+    tech: 'A complaint packet that names the rules broken (RBI, BNS, IT Act), lists SHA-256 hashes for a Section 63 certificate, and bundles one case per operator.',
+    people: 'Legal-aid clinics and trained volunteers help victims file. Victims of the same operator are filed together.',
+    roles: [['Cyber cells and I4C', 'receive one case per operator'], ['Legal-aid clinics', 'help file and follow up'], ['Volunteers', 'reduce the shame that stops reporting']],
+    sdg: [['s16', '16.3']] },
+  { name: 'Reform', icon: 'i-chart', kind: 'tech', color: 'g', sub: 'Close the loop',
+    tagline: 'What gets counted in public gets fixed.',
+    tech: 'A public dashboard: operators, app names per operator, and days from first report to action.',
+    people: 'Students publish a quarterly brief for RBI, MeitY and Google Play. Hotspots decide where the next Prevent camps go.',
+    roles: [['RBI and MeitY', 'block operators, not single names'], ['Google Play', 'reports its response time'], ['Media and researchers', 'keep pressure on']],
+    sdg: [['s16', '16.6']] }
+];
+const stagesEl = $('#stages');
+STAGES.forEach((s, i) => {
+  stagesEl.insertAdjacentHTML('beforeend', `<li><button class="stage-btn" type="button" aria-pressed="false" data-i="${i}"><span class="badge lg ${s.color === 'g' ? 'g' : ''}" style="transform:rotate(${i % 2 ? 4 : -4}deg)">${ico(s.icon)}</span><span><span class="nm">${s.name}</span><span class="sub">${s.sub}</span></span></button>${i < 4 ? '<span class="arrow" aria-hidden="true">→</span>' : ''}</li>`);
+});
+function showStage(i) {
+  const s = STAGES[i];
+  $$('.stage-btn').forEach((b, j) => b.setAttribute('aria-pressed', i === j));
+  $('#stage-panel').innerHTML = `<h3>${s.name} <span class="tag ${s.kind === 'community' ? '' : 'g'}">${s.kind === 'community' ? 'Community-led' : 'Tech-led'}</span></h3>
+    <p style="margin:0">${esc(s.tagline)}</p>
+    <div class="split"><div class="half t"><h4>Tech</h4><p>${esc(s.tech)}</p></div><div class="half c"><h4>People</h4><p>${esc(s.people)}</p></div></div>
+    <ul class="roles">${s.roles.map(([w, r]) => `<li><b>${esc(w)}</b> ${esc(r)}</li>`).join('')}</ul>
+    <p style="margin:1rem 0 0" class="small">SDG targets: ${s.sdg.map(([c, t]) => `<span class="sdg-mini ${c}">${t}</span>`).join('')}</p>`;
+}
+stagesEl.addEventListener('click', e => { const b = e.target.closest('.stage-btn'); if (b) showStage(+b.dataset.i); });
+showStage(0);
+
+/* ---------------- validation (live) ---------------- */
+function renderValidation() {
+  let tp = 0, fp = 0, tn = 0, fn = 0; const wrong = [];
+  const rows = LSDATA.TEST_SET.map(([y, m]) => {
+    const r = LS.scanMessage(m), p = r.score >= 40 ? 1 : 0;
+    if (p && y) tp++; else if (p && !y) { fp++; wrong.push({ type: 'False alarm', m, r }); } else if (!p && !y) tn++; else { fn++; wrong.push({ type: 'Missed', m, r }); }
+    return { y, m, p, r };
+  });
+  const prec = tp / (tp + fp || 1), rec = tp / (tp + fn || 1), f1 = 2 * prec * rec / (prec + rec || 1);
+  const pc = x => Math.round(x * 100) + '%';
+  $('#val-scores').innerHTML = `<div><b>${pc(rec)}</b><span>of harassment caught (recall)</span></div><div><b>${pc(prec)}</b><span>of flags were right (precision)</span></div><div><b>${f1.toFixed(2)}</b><span>F1 score</span></div>`;
+  $('#val-cm').innerHTML = `<div class="h"></div><div class="h">Flagged</div><div class="h">Not flagged</div>
+    <div class="h" style="text-align:right">Harassment</div><div class="good"><span class="v">${tp}</span></div><div class="badc"><span class="v">${fn}</span></div>
+    <div class="h" style="text-align:right">Ordinary</div><div class="badc"><span class="v">${fp}</span></div><div class="good"><span class="v">${tn}</span></div>`;
+  $('#val-miss').innerHTML = wrong.length ? wrong.map(w => {
+    const why = w.type === 'False alarm'
+      ? `One cue on its own (${w.r.hits.map(h => '“' + h.phrases[0] + '”').join(', ')}) with no threat around it. The scanner reads words, not intent.`
+      : `Scored ${w.r.score}. The threat is there but uses words not yet in the list.`;
+    return `<li><span class="pill ${w.type === 'Missed' ? 'high' : 'watch'}" style="margin-bottom:.4rem">${w.type} · score ${w.r.score}</span><br>“${esc(w.m)}”<span class="why">${esc(why)}</span></li>`;
+  }).join('') : '<li>No errors on this set.</li>';
+  $('#val-set').innerHTML = rows.map(x => `<li><span class="lbl" style="background:${x.y ? 'var(--red)' : 'var(--green)'}">${x.y ? 'Harassment' : 'Ordinary'}</span>${esc(x.m)} <span class="muted">(score ${x.r.score}${x.p === x.y ? '' : ', wrong'})</span></li>`).join('');
+}
+
+/* ---------------- nav highlight ---------------- */
+const navLinks = $$('nav.top a.l');
+if ('IntersectionObserver' in window) {
+  const io = new IntersectionObserver(es => es.forEach(en => {
+    if (en.isIntersecting) navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + en.target.id));
+  }), { rootMargin: '-45% 0px -50% 0px' });
+  navLinks.forEach(a => { const s = document.querySelector(a.getAttribute('href')); if (s) io.observe(s); });
+}
+
+/* ---------------- boot ---------------- */
+runCheck();
+runScan();
+renderGraph();
+renderVault().then(() => { if (state.chain.length) verify(state.chain); });
+renderValidation();
+refreshPacket();
+startLive();
+})();
+
+</script>
+</body>
+</html>
