@@ -9,373 +9,316 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
   del(k) { try { localStorage.removeItem(k); } catch (e) {} }
 };
-
-/* ---------------- shared state ---------------- */
 const state = {
-  truth: null,          // last loan check {promised, received, repay, days, apr, app}
-  lastScan: null,       // {text, result}
+  truth: null, flip: null,
   chain: store.get('loanshield_chain_v2', []),
   myReports: store.get('loanshield_reports_v2', []),
-  graph: null,
-  mode: 'sample',
+  graph: null, mode: 'sample',
   live: { on: false, db: null, uid: null, canWrite: false, reports: [] },
-  downloads: null,
-  sample: null
+  downloads: null, sample: null
 };
 
-/* ---------------- toast ---------------- */
 let toastEl, toastT;
 function toast(msg) {
   if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'toast'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl); }
   toastEl.textContent = msg; toastEl.classList.add('show');
-  clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 2600);
+  clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 2800);
 }
 
-/* ---------------- toolkit tabs ---------------- */
-const tabs = $$('.app-tab');
-function selectTab(i, focus) {
-  tabs.forEach((t, j) => {
-    const on = i === j;
-    t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1;
-    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+/* ---------------- Fear → Fact ---------------- */
+const FACTS = {
+  legal:    { who: 'Fake legal threat', head: 'No one can arrest you over a WhatsApp message.', body: 'Police do not send FIRs, warrants or “digital arrest” notices by chat. Not repaying a loan is usually a civil matter, not a crime. Using fake police threats to make you pay is itself an offence.' },
+  image:    { who: 'Photo threat', head: 'A morphed photo is fake, and making it is a crime.', body: 'Editing your photo and sending it to others is punishable under the IT Act. Tell your contacts first. If an image is shared, report it at cybercrime.gov.in.' },
+  contacts: { who: 'Contact threat', head: 'Your contacts owe them nothing, and neither do you to them.', body: 'RBI rules bar recovery agents from harassing your family, friends or workplace. Warn your contacts before they do, and the message loses its power.' },
+  shame:    { who: 'Name-calling', head: 'Being behind on a loan does not make you a fraud.', body: 'Calling you a thief or fraud to other people can be defamation. You have done nothing criminal.' },
+  violence: { who: 'Threat of harm', head: 'This is criminal intimidation. Your safety comes first.', body: 'If you feel unsafe right now, call 112. Then report the number to 1930. Do not meet anyone they send.' },
+  urgency:  { who: 'Pressure', head: 'The deadline is made up to stop you thinking.', body: 'Paying an illegal app usually brings new demands, not peace. Save the message first. You have time to get help.' },
+  fees:     { who: 'Extra charges', head: 'Charges you never agreed to are a warning sign.', body: 'Regulated lenders must show every charge in a Key Fact Statement before you sign. New “penalties” that appear later are how the debt keeps growing.' }
+};
+const ORDER = ['violence', 'image', 'legal', 'contacts', 'shame', 'urgency', 'fees'];
+const EXAMPLES = [
+  LSDATA.EXAMPLE_MESSAGE,
+  'Final notice from Cyber Cell: FIR registered against you for loan fraud. Non-bailable warrant will be issued today. Pay Rs 4800 to recovery.desk@fakebank within 1 hour to cancel. Call 9000012345.',
+  '10:40 pm call from 9000033118. He said tum chor ho, ghar walon ko bata denge, and they will come to your house tomorrow.'
+];
+const RULE_FOR = { legal: ['bns351', 'rbi_conduct'], image: ['it67', 'bns351'], contacts: ['rbi_conduct'], shame: ['bns356'], violence: ['bns351'], urgency: [], fees: [] };
+
+function quote(text, phrase) {
+  const t = text.replace(/\s+/g, ' ');
+  const i = t.toLowerCase().indexOf(phrase.toLowerCase());
+  if (i < 0) return esc(phrase);
+  let a = Math.max(0, t.lastIndexOf(' ', Math.max(0, i - 28))), b = t.indexOf(' ', Math.min(t.length, i + phrase.length + 28));
+  if (b < 0) b = t.length;
+  const s = t.slice(a, b).trim();
+  const re = new RegExp('(' + phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i');
+  return (a > 0 ? '…' : '') + s.split(re).map((p, k) => k % 2 ? `<mark>${esc(p)}</mark>` : esc(p)).join('') + (b < t.length ? '…' : '');
+}
+
+function flip(text, opts) {
+  text = text.trim();
+  const box = $('#result');
+  if (!text) { box.innerHTML = ''; state.flip = null; return; }
+  const scan = LS.scanMessage(text);
+  const rights = LS.rightsFor(scan, text);
+  const late = LS.callTimes(text).filter(t => t.outside);
+  state.flip = { text, scan, rights, late, saved: state.chain.some(e => e.text === text) };
+  const hits = scan.hits.slice().sort((a, b) => ORDER.indexOf(a.cat) - ORDER.indexOf(b.cat));
+  const pairs = hits.map(h => {
+    const f = FACTS[h.cat]; if (!f) return '';
+    const laws = (RULE_FOR[h.cat] || []).map(id => LS.RIGHTS[id].short);
+    if (h.cat === 'urgency' || h.cat === 'contacts') { if (rights.some(r => r.id === 'bns308')) laws.push(LS.RIGHTS.bns308.short); }
+    return `<li class="flip"><div class="said"><span class="who">${esc(f.who)}</span><q>${quote(text, h.phrases[0])}</q></div><span class="arrow" aria-hidden="true">→</span>
+      <div class="fact"><b>${esc(f.head)}</b><p>${esc(f.body)}</p>${laws.length ? `<div class="laws">${[...new Set(laws)].map(l => `<span class="law">${esc(l)}</span>`).join('')}</div>` : ''}</div></li>`;
   });
-  if (focus) tabs[i].focus();
-  if (tabs[i].id === 't-packet') refreshPacket();
-}
-tabs.forEach((t, i) => t.addEventListener('click', () => selectTab(i)));
-$('#app-tabs').addEventListener('keydown', e => {
-  const i = tabs.indexOf(document.activeElement); if (i < 0) return;
-  let n = null;
-  if (e.key === 'ArrowRight') n = (i + 1) % tabs.length;
-  if (e.key === 'ArrowLeft') n = (i - 1 + tabs.length) % tabs.length;
-  if (e.key === 'Home') n = 0; if (e.key === 'End') n = tabs.length - 1;
-  if (n !== null) { e.preventDefault(); selectTab(n, true); }
-});
-$$('[data-open-tab]').forEach(a => a.addEventListener('click', () => selectTab(+a.dataset.openTab)));
-
-/* ---------------- 1. loan truth check ---------------- */
-const qBox = $('#c-questions');
-const preTicked = ['apk', 'perms'];
-LS.RED_FLAG_QUESTIONS.forEach(q => {
-  qBox.insertAdjacentHTML('beforeend', `<label class="check"><input type="checkbox" value="${q.id}" ${preTicked.includes(q.id) ? 'checked' : ''}><span>${esc(q.q)}</span></label>`);
-});
-function runCheck() {
-  const v = id => $(id).value;
-  const answers = $$('#c-questions input:checked').map(i => i.value);
-  const input = { promised: v('#c-promised'), received: v('#c-received'), repay: v('#c-repay'), days: v('#c-days'), answers };
-  const r = LS.truthCheck(input);
-  const box = $('#check-result');
-  if (r.error) { box.className = 'result'; box.innerHTML = `<p style="margin:0">${esc(r.error)}</p>`; state.truth = null; return; }
-  state.truth = { promised: +input.promised, received: +input.received, repay: +input.repay, days: +input.days, apr: r.apr, app: v('#c-app').trim() };
-  const label = { danger: 'High risk. Don’t borrow here.', caution: 'Be careful. Ask questions first.', ok: 'No major warning signs.' }[r.verdict];
-  box.className = 'result ' + r.verdict;
+  late.forEach(t => pairs.push(`<li class="flip"><div class="said"><span class="who">Call time</span><q><mark>${esc(t.raw)}</mark></q></div><span class="arrow" aria-hidden="true">→</span>
+    <div class="fact"><b>Recovery calls at this hour are not allowed.</b><p>RBI rules let recovery agents call only between 8 am and 7 pm. Note every late call; each one counts.</p><div class="laws"><span class="law">RBI calling hours</span></div></div></li>`));
+  const nThreat = hits.filter(h => FACTS[h.cat]).length + late.length;
   box.innerHTML = `
-    <div><span class="pill ${r.verdict}">${esc(label)}</span></div>
-    <div><div class="big-figure">${LS.fmt(Math.round(r.apr))}%<small>a year, the real cost</small></div></div>
-    <div class="minis">
-      <div class="mini"><b>₹${LS.fmt(r.totalCost)}</b><span>you pay on top of what you got</span></div>
-      <div class="mini"><b>₹${LS.fmt(r.upfrontCut)}</b><span>cut before it reached you</span></div>
-      <div class="mini"><b>₹${LS.fmt(Math.round(r.perDay))}</b><span>cost per day</span></div>
-    </div>
-    ${r.flags.length ? `<ul class="flags">${r.flags.map(f => `<li><span class="sev s${f.sev}" aria-hidden="true"></span><span>${esc(f.text)}</span></li>`).join('')}</ul>` : ''}
-    <p class="small muted" style="margin:0">${r.verdict === 'ok'
-      ? 'Still ask for the Key Fact Statement and keep a copy.'
-      : 'A safer route: ask your SHG or a microfinance institution for a small loan, or check RBI’s DLA directory for a listed lender.'}</p>`;
-}
-['#c-promised', '#c-received', '#c-repay', '#c-days', '#c-app'].forEach(id => $(id).addEventListener('input', runCheck));
-qBox.addEventListener('change', runCheck);
-$('#check-form').addEventListener('submit', e => { e.preventDefault(); runCheck(); });
-
-/* ---------------- 2. threat scanner ---------------- */
-function highlight(text, hits) {
-  const phrases = hits.flatMap(h => h.phrases).sort((a, b) => b.length - a.length);
-  if (!phrases.length) return esc(text);
-  const re = new RegExp('(' + phrases.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
-  return text.split(re).map((part, i) => i % 2 ? `<mark>${esc(part)}</mark>` : esc(part)).join('');
-}
-function idChips(ids) {
-  const c = [];
-  ids.upi.forEach(u => c.push(`<span class="chip"><span class="k">UPI</span>${esc(u)}</span>`));
-  ids.phones.forEach(p => c.push(`<span class="chip"><span class="k">Phone</span>${esc(p)}</span>`));
-  ids.links.forEach(l => c.push(`<span class="chip"><span class="k">Link</span>${esc(l)}</span>`));
-  return c.join('');
-}
-function alreadyReported(text) { return state.myReports.some(r => r.text === text); }
-function runScan() {
-  const text = $('#scan-input').value.trim();
-  const box = $('#scan-result');
-  if (!text) {
-    box.className = 'result';
-    box.innerHTML = '<div class="empty" style="border:0;padding:.5rem">Paste a message on the left, then press <b>Scan message</b>.</div>';
-    state.lastScan = null; return;
-  }
-  const r = LS.scanMessage(text);
-  state.lastScan = { text, result: r };
-  const hasIds = r.ids.upi.length + r.ids.phones.length + r.ids.links.length > 0;
-  const canReport = (r.ids.upi.length + r.ids.phones.length) > 0;
-  const reported = alreadyReported(text);
-  box.className = 'result ' + r.level;
-  box.innerHTML = `
-    <div style="display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;justify-content:space-between">
-      <span class="pill ${r.level}">${esc(r.levelLabel)}</span>
-      <span class="num small muted">Threat score ${r.score} / 100</span>
-    </div>
-    <div class="meter ${r.level}" role="img" aria-label="Threat score ${r.score} out of 100"><i style="width:${r.score}%"></i></div>
-    <div class="preview">${highlight(text, r.hits)}</div>
-    ${r.hits.length ? `<ul class="flags">${r.hits.map(h => `<li><span class="sev ${h.w >= 40 ? 's3' : ''}" aria-hidden="true"></span><span><b>${esc(h.label)}</b> · “${h.phrases.map(esc).join('”, “')}”</span></li>`).join('')}</ul>` : '<p class="muted small" style="margin:0">No threat words found. If it still feels wrong, save it anyway.</p>'}
-    ${hasIds ? `<div><p class="small" style="margin:0 0 .4rem;font-weight:700">Identifiers the harassers used</p><div class="chips">${idChips(r.ids)}</div></div>` : ''}
-    ${(() => { const rights = LS.rightsFor(r, text); return rights.length ? `<div><p class="small" style="margin:0 0 .45rem;font-weight:700">Rules this may break</p><ul class="rights">${rights.map(x => `<li><span class="law">${esc(x.short)}</span><span>${esc(x.text.replace(/^[^:]+:\s*/, ''))}</span></li>`).join('')}</ul></div>` : ''; })()}
-    ${r.needsSupport ? `<div class="support"><p><b>This is a crime, and you are not alone.</b> Don’t pay more to make it stop. Save it, then report.</p><div class="nums"><span>Cybercrime helpline <b>1930</b></span><span>Tele-MANAS, free 24×7 <b>14416</b></span></div><p style="margin:.6rem 0 0"><button class="link-btn" type="button" id="go-shield">Warn your contacts before they do →</button></p></div>` : ''}
-    <div class="actions">
-      <button class="btn g" type="button" id="save-scan">${ico('i-lock')}Save to evidence vault</button>
-      ${canReport ? `<button class="btn ghost" type="button" id="report-scan" ${reported ? 'disabled' : ''}>${ico('i-link')}${reported ? 'Added to scam graph' : 'Add to scam graph'}</button>` : ''}
-    </div>
-    ${canReport && !reported ? `<p class="small muted" style="margin:0">${state.live.canWrite ? 'Adds the UPI IDs, numbers and wording to the shared graph. Never your name or contacts.' : 'Adds the UPI IDs, numbers and wording to the graph on this device.'}</p>` : ''}
-    ${state.sample ? `<div class="ai-box" id="ai-box"><button class="btn ghost" type="button" id="ai-btn">${ico('i-brain')}Ask AI for a second opinion</button><p class="small muted" style="margin:.4rem 0 0">For Tamil, Telugu, Bengali or any language the word list misses. This sends the message text to Claude.</p></div>` : ''}`;
-  $('#save-scan').addEventListener('click', () => addToVault('message', text));
-  const rep = $('#report-scan'); if (rep) rep.addEventListener('click', () => reportScan(text, r));
-  const gs = $('#go-shield'); if (gs) gs.addEventListener('click', () => selectTab(tabs.findIndex(t => t.id === 't-shield'), true));
+    <div class="verdict"><span class="pill ${scan.level}">${esc(scan.levelLabel)}</span>
+      <span class="small muted">${nThreat ? `${nThreat} threat${nThreat > 1 ? 's' : ''} flipped · ${rights.length} rule${rights.length === 1 ? '' : 's'} this may break` : 'No threat words found'}</span></div>
+    ${pairs.length ? `<ul class="flip-list">${pairs.join('')}</ul>` : `<div class="none"><b>No threat words found.</b> <span class="muted">If the message still frightened you, save it anyway. The word list misses new wording${state.sample ? '; you can ask the AI below' : ''}.</span></div>`}
+    ${scan.needsSupport ? `<div class="support"><span>You are not alone, and you do not have to pay to make this stop.</span><span><b class="n">1930</b> cybercrime</span><span><b class="n">14416</b> Tele-MANAS</span>${hits.some(h => h.cat === 'violence') ? '<span><b class="n">112</b> danger</span>' : ''}</div>` : ''}
+    <div class="case" id="case"></div>
+    ${state.sample ? `<div class="ai" id="ai-box"><button class="link-btn" type="button" id="ai-btn">Ask AI to read it (any language)</button> <span class="small muted">Sends the text to Claude.</span></div>` : ''}`;
+  renderCase();
   const ai = $('#ai-btn'); if (ai) ai.addEventListener('click', () => askAI(text));
+  if (opts && opts.scroll) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-/* ---------------- AI second opinion (optional, sends text to Claude) ---------------- */
-let aiCtl = null;
+function matchCluster(ids) {
+  if (!state.graph) return null;
+  return state.graph.clusters.find(c => c.upi.some(u => ids.upi.includes(u)) || c.phones.some(p => ids.phones.includes(p))) || null;
+}
+function renderCase() {
+  const el = $('#case'); if (!el || !state.flip) return;
+  const f = state.flip, ids = f.scan.ids;
+  const saved = state.chain.find(e => e.text === f.text);
+  const idx = saved ? state.chain.indexOf(saved) + 1 : 0;
+  const cl = matchCluster(ids);
+  const hasIds = ids.upi.length + ids.phones.length > 0;
+  const reported = state.myReports.some(r => r.text === f.text);
+  const opLine = cl ? `Same ${cl.upi.some(u => ids.upi.includes(u)) ? 'UPI ID' : 'number'} as <b>${esc(cl.id)}</b>: ${cl.reporters} ${cl.reporters > 1 ? 'people' : 'person'}, ${cl.apps.length} app name${cl.apps.length > 1 ? 's' : ''} (${cl.apps.map(esc).join(', ')}). ${cl.published ? 'Published.' : `Held until ${LS.PUBLISH_THRESHOLD} people report it.`}`
+    : hasIds ? `${[...ids.upi, ...ids.phones.map(LS.maskPhone)].map(x => `<code>${esc(x)}</code>`).join(', ')}. No match yet.` : 'No UPI ID or number in this message.';
+  const steps = [
+    { on: !!saved, icon: 'i-lock', t: saved ? `Sealed as evidence item #${idx}` : 'Seal it as evidence', d: saved ? `SHA-256 <code>${saved.hash.slice(0, 16)}…</code> · stored on this device` : 'Timestamped and hash-chained, so it holds up later.',
+      act: saved ? `<button class="btn ghost sm" type="button" data-open="dlg-vault">View (${state.chain.length})</button>` : `<button class="btn primary sm" type="button" id="seal">Add to my case</button>` },
+    { on: f.rights.length > 0, icon: 'i-scale', t: f.rights.length ? `${f.rights.length} rule${f.rights.length > 1 ? 's' : ''} this may break` : 'No rule matched', d: f.rights.length ? f.rights.map(r => esc(r.short)).join(' · ') : 'Legal aid can still advise you.', act: '' },
+    { on: !!cl || reported, icon: 'i-link', t: cl ? 'Linked to an operator' : 'Operator', d: opLine,
+      act: hasIds ? (reported ? '<span class="small muted">Shared</span>' : `<button class="btn ghost sm" type="button" id="report">Share identifiers</button>`) : '' },
+    { on: !!state.shieldSent, icon: 'i-users', t: 'Warn your contacts first', d: 'A ready message in English, Hindi or Tamil.', act: `<button class="btn ghost sm" type="button" data-open="dlg-shield">Write it</button>` },
+    { on: false, icon: 'i-doc', t: 'Complaint packet', d: 'Everything above, ready for legal aid or 1930.', act: `<button class="btn ghost sm" type="button" data-open="dlg-packet">Build it</button>` }
+  ];
+  const strength = steps.filter(s => s.on).length;
+  el.innerHTML = `<div class="case-head"><h3>Your case</h3><span class="small muted num">${strength} of 5 in place</span></div>
+    <ol class="case-steps">${steps.map(s => `<li><span class="dot ${s.on ? 'on' : ''}">${ico(s.on ? 'i-check' : s.icon)}</span><div><div class="t">${s.t}</div><div class="d">${s.d}</div></div><div class="act">${s.act}</div></li>`).join('')}</ol>
+    ${hasIds && !reported ? `<p class="small muted" style="padding:0 1.2rem 1rem">Sharing adds only the UPI IDs, numbers and wording to the operator map${state.live.canWrite ? ' for everyone with this link' : ' on this device'}. Never your name or contacts.</p>` : ''}`;
+  const s = $('#seal'); if (s) s.addEventListener('click', async () => { await addToVault('message', f.text); });
+  const r = $('#report'); if (r) r.addEventListener('click', () => reportFlip());
+}
+document.addEventListener('click', e => {
+  const o = e.target.closest('[data-open]'); if (o) openDlg(o.dataset.open);
+  if (e.target.closest('[data-close]')) e.target.closest('dialog').close();
+});
+function openDlg(id) {
+  const d = document.getElementById(id);
+  if (id === 'dlg-packet') refreshPacket();
+  if (id === 'dlg-vault') renderVault();
+  if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', '');
+}
+$$('dialog').forEach(d => d.addEventListener('click', e => { if (e.target === d) d.close(); }));
+
+$('#flip-form').addEventListener('submit', e => { e.preventDefault(); flip($('#msg').value, { scroll: true }); });
+$$('[data-ex]').forEach(b => b.addEventListener('click', () => { $('#msg').value = EXAMPLES[+b.dataset.ex]; flip($('#msg').value, { scroll: true }); }));
+
 async function askAI(text) {
   const box = $('#ai-box'); if (!box || !state.sample) return;
-  if (aiCtl) aiCtl.abort(); aiCtl = new AbortController();
-  box.innerHTML = '<p class="small muted" style="margin:0">Asking Claude…</p>';
-  const prompt = 'You review messages that victims of illegal Indian loan apps receive. Decide whether the message below is harassment by a loan recovery agent. ' +
-    'Reply with JSON only, in this exact shape: {"harassment": true|false, "language": "<language name in English>", "threats": ["<short English phrase>", ...], "summary": "<one or two plain English sentences on what the message says and threatens>", "advice": "<one sentence of practical advice for the victim>"}. ' +
-    'Threat phrases can include: threat to message contacts, threat to misuse photos, fake legal or police threat, name-calling, threat of violence, pressure to pay, extra charges. Do not invent facts.\n\nMESSAGE:\n' + text.slice(0, 3000);
+  box.innerHTML = '<p class="small muted">Asking Claude…</p>';
+  const prompt = 'You help victims of illegal Indian loan apps. Read the message below. Reply with JSON only: {"harassment": true|false, "language": "<language in English>", "summary": "<one plain English sentence on what it threatens>", "truth": "<one or two calm sentences on what is actually true for the victim>"}. Do not invent facts.\n\nMESSAGE:\n' + text.slice(0, 3000);
   try {
-    const a = await state.sample.json(prompt, { modelTier: 'quick', signal: aiCtl.signal });
-    const threats = Array.isArray(a.threats) ? a.threats : [];
-    box.innerHTML = `<div class="ai-answer"><p style="margin:0 0 .35rem"><span class="pill ${a.harassment ? 'high' : 'clear'}">${a.harassment ? 'AI: harassment' : 'AI: not harassment'}</span> <span class="small muted">${esc(a.language || '')}</span></p>
-      <p style="margin:0 0 .4rem">${esc(a.summary || '')}</p>
-      ${threats.length ? `<div class="chips" style="margin-bottom:.4rem">${threats.map(t => `<span class="chip">${esc(t)}</span>`).join('')}</div>` : ''}
-      <p class="small" style="margin:0"><b>Advice:</b> ${esc(a.advice || '')}</p>
-      <p class="small muted" style="margin:.4rem 0 0">A second opinion from Claude. The word-list result above is what goes into your evidence.</p></div>`;
+    const a = await state.sample.json(prompt, { modelTier: 'quick' });
+    box.innerHTML = `<div class="flip"><div class="said"><span class="who">${esc(a.language || 'Message')}</span><q>${esc(a.summary || '')}</q></div><span class="arrow" aria-hidden="true">→</span><div class="fact"><b>${a.harassment ? 'This is harassment.' : 'This does not read as harassment.'}</b><p>${esc(a.truth || '')}</p></div></div><p class="small muted" style="margin-top:.4rem">AI reading by Claude. The word-list result above is what goes into your evidence.</p>`;
   } catch (e) {
-    const msg = e && e.code === 'rate_limited' ? 'Too many requests. Try again in a minute.'
-      : e && (e.code === 'not_granted' || e.code === 'declined') ? 'AI second opinion is off for this page. The word-list result above still stands.'
-      : 'The AI second opinion isn’t available right now. The word-list result above still stands.';
-    box.innerHTML = `<p class="small muted" style="margin:0">${msg}</p>`;
+    box.innerHTML = `<p class="small muted">${e && e.code === 'rate_limited' ? 'Too many requests. Try again in a minute.' : 'The AI reading isn’t available right now.'}</p>`;
   }
 }
-$('#scan-input').value = LSDATA.EXAMPLE_MESSAGE;
-$('#scan-btn').addEventListener('click', runScan);
-$('#scan-clear').addEventListener('click', () => { $('#scan-input').value = ''; runScan(); $('#scan-input').focus(); });
 
-async function reportScan(text, r) {
-  if (alreadyReported(text)) return;
-  const app = guessApp(text) || (state.truth && state.truth.app) || 'Unnamed app';
-  const script = LS.normaliseScript(text);
+/* ---------------- report to operator map ---------------- */
+function guessApp(text) { const names = [...new Set(LSDATA.SAMPLE_REPORTS.map(r => r.app))]; return names.find(n => text.toLowerCase().includes(n.toLowerCase())); }
+async function reportFlip() {
+  const f = state.flip; if (!f) return;
+  const ids = f.scan.ids, app = guessApp(f.text) || 'Unnamed app';
   if (state.live.canWrite) {
-    const ok = await pushLiveReport({ app: app.slice(0, 60), upi: r.ids.upi.slice(0, 5), phones: r.ids.phones.slice(0, 5), script, ts: Date.now() });
+    const ok = await pushLiveReport({ app, upi: ids.upi.slice(0, 5), phones: ids.phones.slice(0, 5), script: LS.normaliseScript(f.text), ts: Date.now() });
     if (ok) {
-      state.myReports.push({ reporter: 'YOU', app, day: 0, upi: r.ids.upi, phones: r.ids.phones, text, mine: true, shared: true });
-      store.set('loanshield_reports_v2', state.myReports);
-      setGraphMode('live'); runScan();
-      const c = state.graph.clusters.find(c => c.idx.some(i => allReports()[i].mine));
-      toast(c && c.apps.length > 1 ? `Linked to ${c.id}: ${c.reporters} people, ${c.apps.length} app names` : 'Added to the shared scam graph');
-      return;
+      state.myReports.push({ reporter: 'YOU', app, day: 0, upi: ids.upi, phones: ids.phones, text: f.text, mine: true, shared: true });
+      store.set('loanshield_reports_v2', state.myReports); setGraphMode('live'); renderCase(); toast('Shared with the operator map'); return;
     }
   }
-  state.myReports.push({ reporter: 'YOU', app, day: 40, upi: r.ids.upi, phones: r.ids.phones, text, mine: true });
+  state.myReports.push({ reporter: 'YOU', app, day: 40, upi: ids.upi, phones: ids.phones, text: f.text, mine: true });
   store.set('loanshield_reports_v2', state.myReports);
-  setGraphMode('sample');
-  const c = state.graph.clusters.find(c => c.idx.some(i => allReports()[i].mine && allReports()[i].text === text));
-  runScan();
-  if (c && c.apps.length > 1) toast(`Linked to ${c.id}: ${c.reporters} people, ${c.apps.length} app names`);
-  else toast('Added to the scam graph as a new operator');
+  setGraphMode('sample'); renderCase();
+  const c = matchCluster(ids); toast(c && c.apps.length > 1 ? `Linked to ${c.id}: ${c.reporters} people, ${c.apps.length} app names` : 'Added to the operator map');
 }
-function guessApp(text) {
-  const names = [...new Set(LSDATA.SAMPLE_REPORTS.map(r => r.app))];
-  return names.find(n => text.toLowerCase().includes(n.toLowerCase()));
-}
-
 
 /* ---------------- Contact Shield ---------------- */
 function shieldText() { return LS.shieldMessage($('input[name=sh-lang]:checked').value, $('#sh-name').value); }
 function renderShield() { $('#sh-out').value = shieldText(); $('#sh-wa').href = 'https://wa.me/?text=' + encodeURIComponent(shieldText()); }
 $$('input[name=sh-lang]').forEach(r => r.addEventListener('change', renderShield));
 $('#sh-name').addEventListener('input', renderShield);
-$('#sh-copy').addEventListener('click', () => { copyText(shieldText(), $('#sh-out'), 'Warning copied. Paste it to your contacts.'); });
-$('#sh-wa').addEventListener('click', () => {
-  if (!state.shieldLogged) { state.shieldLogged = true; addToVault('note', 'Sent a warning to my contacts that loan-app messages about me are false (' + new Date().toLocaleString('en-IN') + ').'); }
-});
-$('#sh-log').addEventListener('click', async () => { await addToVault('note', 'Sent a warning to my contacts that loan-app messages about me are false.'); });
+$('#sh-copy').addEventListener('click', () => copyText(shieldText(), $('#sh-out'), 'Copied. Paste it to your contacts.'));
+async function shieldSent() { if (state.shieldSent) return; state.shieldSent = true; await addToVault('note', 'Warned my contacts that loan-app messages about me are false.'); }
+$('#sh-wa').addEventListener('click', shieldSent);
+$('#sh-log').addEventListener('click', async () => { await shieldSent(); $('#dlg-shield').close(); });
 renderShield();
 
-/* ---------------- 3. evidence vault ---------------- */
-function saveChain() { if (!store.set('loanshield_chain_v2', state.chain)) toast('Saved for this visit only. Your browser blocked storage.'); }
+/* ---------------- evidence vault ---------------- */
 async function addToVault(kind, text) {
   state.chain = await LS.appendEntry(state.chain, { ts: Date.now(), kind, text });
-  saveChain();
-  await renderVault();
-  toast('Saved to evidence vault');
+  if (!store.set('loanshield_chain_v2', state.chain)) toast('Saved for this visit only. Your browser blocked storage.'); else toast('Sealed and added to your case');
+  renderCase(); if ($('#dlg-vault').open) renderVault();
 }
-async function renderVault(brokenFrom) {
-  const list = $('#vault-list');
-  const n = state.chain.length;
-  const count = $('#vault-count'); count.hidden = n === 0; count.textContent = n;
+async function renderVault(broken) {
+  const n = state.chain.length, list = $('#vault-list');
   $('#verify-btn').disabled = $('#tamper-btn').disabled = $('#clear-vault').disabled = n === 0;
-  if (!n) {
-    list.innerHTML = '<li class="empty">Nothing saved yet. Scan a message and press <b>Save to evidence vault</b>, or log a call on the right.</li>';
-    $('#chain-status').innerHTML = '';
-    return;
-  }
-  const items = brokenFrom && brokenFrom.copy ? brokenFrom.copy : state.chain;
+  if (!n) { list.innerHTML = '<li class="muted">Nothing saved yet. Flip a threat and press <b>Add to my case</b>, or log a call below.</li>'; $('#chain-status').innerHTML = ''; return; }
+  const items = broken && broken.copy ? broken.copy : state.chain;
   list.innerHTML = items.map((e, i) => {
-    const bad = brokenFrom && brokenFrom.at > -1 && i >= brokenFrom.at;
-    return `<li class="vault-item ${bad ? 'bad' : ''}">
-      <div class="meta"><span>#${i + 1}</span><span>${esc(new Date(e.ts).toLocaleString('en-IN'))}</span><span>${esc(e.kind === 'note' ? 'Call or event note' : 'Message')}</span>${bad ? '<span style="color:var(--red-lt);font-weight:700">Hash mismatch</span>' : ''}</div>
-      <div class="txt">${esc(e.text)}</div>
-      ${(() => { const rr = LS.rightsFor(LS.scanMessage(e.text), e.text); return rr.length ? `<div class="law-row">${rr.map(x => `<span class="law" title="${esc(x.text)}">${esc(x.short)}</span>`).join('')}</div>` : ''; })()}
-      <div class="hash">SHA-256 <b>${e.hash}</b></div>
-      <div class="hash">covers previous ${e.prev === LS.GENESIS ? '(start of chain)' : e.prev.slice(0, 16) + '…'}</div>
-    </li>`;
+    const bad = broken && broken.at > -1 && i >= broken.at;
+    return `<li class="${bad ? 'bad' : ''}"><div class="meta"><span>#${i + 1}</span><span>${esc(new Date(e.ts).toLocaleString('en-IN'))}</span><span>${e.kind === 'note' ? 'Note' : 'Message'}</span>${bad ? '<b style="color:var(--threat)">Hash mismatch</b>' : ''}</div><div>${esc(e.text)}</div><div class="hash">SHA-256 ${e.hash}</div></li>`;
   }).join('');
+  if (!broken) await verify(state.chain);
 }
 async function verify(chain, label) {
   const v = await LS.verifyChain(chain);
-  $('#chain-status').innerHTML = v.ok
-    ? `<span class="badge sm g">${ico('i-check')}</span><span>Chain intact. ${chain.length} item${chain.length > 1 ? 's' : ''}, none changed since saving.</span>`
-    : `<span class="badge sm">${ico('i-x')}</span><span>${label || 'Chain broken'} at item ${v.brokenAt + 1}. Everything from there on can no longer be trusted.</span>`;
+  $('#chain-status').innerHTML = v.ok ? `<p class="status ok">${ico('i-check')}Chain intact: ${chain.length} item${chain.length > 1 ? 's' : ''}, none changed since saving.</p>`
+    : `<p class="status bad">${ico('i-x')}${label || 'Chain broken'} at item ${v.brokenAt + 1}.</p>`;
   return v;
 }
-$('#verify-btn').addEventListener('click', async () => { await renderVault(); await verify(state.chain); });
+$('#verify-btn').addEventListener('click', () => renderVault());
 $('#tamper-btn').addEventListener('click', async () => {
   const copy = state.chain.map(e => ({ ...e }));
   copy[0] = { ...copy[0], text: copy[0].text.replace(/\d/, d => String((+d + 1) % 10)) + (/\d/.test(copy[0].text) ? '' : ' (edited)') };
-  const v = await verify(copy, 'Tampering detected');
-  await renderVault({ copy, at: v.brokenAt });
-  $('#chain-status').insertAdjacentHTML('beforeend', '<span class="small muted" style="font-weight:400">This edited a copy. Your saved items are unchanged; press Verify chain to see them.</span>');
+  const v = await verify(copy, 'Tampering detected'); await renderVault({ copy, at: v.brokenAt });
+  $('#chain-status').insertAdjacentHTML('beforeend', '<p class="small muted">This edited a copy to show the effect. Your saved items are unchanged.</p>');
 });
-$('#clear-vault').addEventListener('click', () => { $('#clear-confirm').hidden = false; $('#clear-no').focus(); });
+$('#clear-vault').addEventListener('click', () => { $('#clear-confirm').hidden = false; });
 $('#clear-no').addEventListener('click', () => { $('#clear-confirm').hidden = true; });
-$('#clear-yes').addEventListener('click', async () => {
-  state.chain = []; store.del('loanshield_chain_v2');
-  $('#clear-confirm').hidden = true; await renderVault(); toast('All saved items deleted');
-});
+$('#clear-yes').addEventListener('click', async () => { state.chain = []; store.del('loanshield_chain_v2'); $('#clear-confirm').hidden = true; await renderVault(); renderCase(); toast('All saved items deleted'); });
 $('#note-form').addEventListener('submit', async e => {
-  e.preventDefault();
-  const t = $('#note-text').value.trim();
-  if (t.length < 8) { $('#note-error').textContent = 'Write at least a few words: the time, the number and what was said.'; return; }
-  $('#note-error').textContent = '';
-  await addToVault('note', t); $('#note-text').value = '';
-  const late = LS.callTimes(t).filter(x => x.outside);
-  if (late.length) toast(`${late[0].raw}: RBI bars recovery calls before 8 am or after 7 pm`);
+  e.preventDefault(); const t = $('#note-text').value.trim();
+  if (t.length < 8) { $('#note-error').textContent = 'Write the time, the number and what was said.'; return; }
+  $('#note-error').textContent = ''; await addToVault('note', t); $('#note-text').value = '';
+  const late = LS.callTimes(t).filter(x => x.outside); if (late.length) toast(`${late[0].raw}: RBI bars recovery calls before 8 am or after 7 pm`);
 });
 
-/* ---------------- 4. complaint packet ---------------- */
-function packetIds() {
-  const ids = { upi: [], phones: [], links: [] };
-  const texts = state.chain.map(e => e.text);
-  if (state.lastScan) texts.push(state.lastScan.text);
-  texts.forEach(t => { const x = LS.extractIdentifiers(t); ids.upi.push(...x.upi); ids.phones.push(...x.phones); ids.links.push(...x.links); });
-  Object.keys(ids).forEach(k => ids[k] = [...new Set(ids[k])]);
-  return ids;
-}
-function matchCluster(ids) {
-  const rs = allReports();
-  return state.graph.clusters.find(c => c.upi.some(u => ids.upi.includes(u)) || c.phones.some(p => ids.phones.includes(p)))
-      || null;
-}
-function packetRights() {
-  const texts = state.chain.map(e => e.text); if (state.lastScan) texts.push(state.lastScan.text);
-  const seen = new Map();
-  texts.forEach(t => LS.rightsFor(LS.scanMessage(t), t).forEach(x => seen.set(x.id, x)));
-  return [...seen.values()];
-}
+/* ---------------- complaint packet ---------------- */
 async function refreshPacket() {
-  const ids = packetIds();
-  const v = await LS.verifyChain(state.chain);
-  const cluster = matchCluster(ids);
-  const apps = [...new Set([state.truth && state.truth.app, ...(cluster ? [] : [])].filter(Boolean))];
-  const txt = LS.buildPacket({
-    date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-    name: $('#pk-name').value.trim(), contact: $('#pk-contact').value.trim(), city: $('#pk-city').value.trim(), summary: $('#pk-summary').value.trim(),
-    truth: state.truth, apps: apps.length ? apps : (cluster ? cluster.apps : []), ids, cluster: cluster && cluster.published ? cluster : null,
-    evidence: state.chain, chainOk: v.ok, brokenAt: v.brokenAt, rights: packetRights()
-  });
-  $('#packet-out').value = txt;
-  const items = [
-    [!!state.truth, state.truth ? `Loan check: ${LS.fmt(Math.round(state.truth.apr))}% a year` : 'No loan check yet (step 1)'],
-    [state.chain.length > 0, state.chain.length ? `${state.chain.length} evidence item${state.chain.length > 1 ? 's' : ''}, chain ${v.ok ? 'intact' : 'broken'}` : 'No evidence saved yet (step 3)'],
-    [ids.upi.length + ids.phones.length > 0, `${ids.upi.length} UPI ID${ids.upi.length === 1 ? '' : 's'}, ${ids.phones.length} phone number${ids.phones.length === 1 ? '' : 's'}`],
-    [!!(cluster && cluster.published), cluster ? (cluster.published ? `Linked to ${cluster.id} (${cluster.reporters} people)` : `Matches ${cluster.id}, not yet published (${cluster.reporters} of ${LS.PUBLISH_THRESHOLD} people)`) : 'No linked operator']
-  ];
-  $('#packet-inputs').innerHTML = items.map(([ok, t]) => `<li><span class="sev" style="background:${ok ? 'var(--green)' : 'var(--line-d)'}" aria-hidden="true"></span><span>${esc(t)}</span></li>`).join('');
+  const texts = state.chain.map(e => e.text); if (state.flip) texts.push(state.flip.text);
+  const ids = { upi: [], phones: [], links: [] }, rights = new Map();
+  texts.forEach(t => { const x = LS.extractIdentifiers(t); ids.upi.push(...x.upi); ids.phones.push(...x.phones); ids.links.push(...x.links); LS.rightsFor(LS.scanMessage(t), t).forEach(r => rights.set(r.id, r)); });
+  Object.keys(ids).forEach(k => ids[k] = [...new Set(ids[k])]);
+  const v = await LS.verifyChain(state.chain), cl = matchCluster(ids);
+  $('#packet-out').value = LS.buildPacket({ date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+    name: $('#pk-name').value.trim(), city: $('#pk-city').value.trim(), summary: $('#pk-summary').value.trim(), truth: state.truth,
+    apps: cl ? cl.apps : (state.truth && state.truth.app ? [state.truth.app] : []), ids, cluster: cl && cl.published ? cl : null,
+    evidence: state.chain, chainOk: v.ok, brokenAt: v.brokenAt, rights: [...rights.values()] });
 }
-$('#packet-form').addEventListener('submit', e => { e.preventDefault(); refreshPacket().then(() => toast('Packet built. Read it through before filing.')); });
+['#pk-name', '#pk-city', '#pk-summary'].forEach(id => $(id).addEventListener('input', refreshPacket));
 $('#packet-copy').addEventListener('click', () => copyText($('#packet-out').value, $('#packet-out'), 'Packet copied'));
 $('#packet-save').addEventListener('click', () => saveFile('loanshield-complaint-packet.txt', $('#packet-out').value));
 async function saveFile(name, data) {
   if (state.downloads) {
     try { await state.downloads.save({ filename: name, data }); toast('Saved ' + name); }
-    catch (e) { if (!e || e.code !== 'declined') toast(e && e.code === 'rate_limited' ? 'A save is already open. Try again in a moment.' : 'Saving isn\u2019t available here. Use Copy instead.'); }
+    catch (e) { if (!e || e.code !== 'declined') toast('Saving isn’t available here. Use Copy instead.'); }
     return;
   }
-  try {
-    const blob = data instanceof Blob ? data : new Blob([data], { type: 'text/plain' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  } catch (e) { toast('Saving is blocked here. Use Copy instead.'); }
+  try { const blob = data instanceof Blob ? data : new Blob([data], { type: 'text/plain' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+  catch (e) { toast('Saving is blocked here. Use Copy instead.'); }
 }
 $$('[data-deck]').forEach(b => b.addEventListener('click', async () => {
-  const f = b.dataset.deck;
-  if (!state.downloads) { location.href = 'downloads/' + f; return; }
+  const f = b.dataset.deck; if (!state.downloads) { location.href = 'downloads/' + f; return; }
   b.disabled = true;
-  try { const res = await fetch('downloads/' + f); if (!res.ok) throw 0; await saveFile(f, await res.blob()); }
-  catch (e) { toast('Couldn\u2019t load the deck. Try again.'); }
+  try { const res = await fetch('downloads/' + f); if (!res.ok) throw 0; await saveFile(f, await res.blob()); } catch (e) { toast('Couldn’t load the file. Try again.'); }
   b.disabled = false;
 }));
-function copyText(t, fallbackEl, msg) {
-  const done = () => toast(msg || 'Copied');
-  const fail = () => { if (fallbackEl && fallbackEl.select) { fallbackEl.focus(); fallbackEl.select(); toast('Selected. Press Ctrl+C or long-press to copy.'); } else toast('Copy blocked. Select the text by hand.'); };
-  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, fail); else fail();
+function copyText(t, el, msg) {
+  const fail = () => { if (el && el.select) { el.focus(); el.select(); toast('Selected. Press Ctrl+C to copy.'); } else toast('Copy blocked. Select the text by hand.'); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(() => toast(msg || 'Copied'), fail); else fail();
 }
-$$('[data-copy]').forEach(b => b.addEventListener('click', () => copyText(b.dataset.copy, null, 'Copied ' + b.dataset.copy)));
 
-/* ---------------- scam graph ---------------- */
-function allReports() {
-  if (state.mode === 'live') return state.live.reports;
-  return LSDATA.SAMPLE_REPORTS.concat(state.myReports.filter(r => !r.shared));
+/* ---------------- Before you borrow ---------------- */
+LS.RED_FLAG_QUESTIONS.forEach(q => $('#c-questions').insertAdjacentHTML('beforeend', `<label class="check"><input type="checkbox" value="${q.id}"><span>${esc(q.q)}</span></label>`));
+function runCheck() {
+  const v = id => $(id).value.replace(/[,\s₹]/g, '');
+  const input = { promised: v('#c-promised'), received: v('#c-received'), repay: v('#c-repay'), days: v('#c-days'), answers: $$('#c-questions input:checked').map(i => i.value) };
+  const r = LS.truthCheck(input), out = $('#check-out');
+  if (r.error) { out.innerHTML = `<p class="muted">${esc(r.error)}</p>`; state.truth = null; return; }
+  state.truth = { promised: +input.promised, received: +input.received, repay: +input.repay, days: +input.days, apr: r.apr, app: '' };
+  const apr = Math.round(r.apr), scale = Math.max(apr, 40);
+  const bars = [['This app', apr, 'them'], ['Credit card, about', 42, ''], ['SHG / microfinance, up to', 26, '']];
+  out.innerHTML = `<p class="eyebrow">Real yearly cost</p>
+    <div class="apr ${r.verdict}" style="margin-top:.5rem">${LS.fmt(apr)}%</div>
+    <p class="apr-sub">You pay ₹${LS.fmt(r.totalCost)} on top of the ₹${LS.fmt(+input.received)} that reaches you. That is ₹${LS.fmt(Math.round(r.perDay))} a day.</p>
+    <div class="compare">${bars.map(([l, x, c]) => `<div class="bar ${c}"><span>${l}</span><span class="track"><i style="width:${Math.max(2, Math.min(100, x / scale * 100))}%"></i></span><span class="v">${LS.fmt(x)}%</span></div>`).join('')}</div>
+    ${r.flags.length ? `<ul class="flag-list">${r.flags.slice(0, 4).map(f => `<li>${esc(f.text)}</li>`).join('')}</ul>` : ''}
+    <p class="small muted" style="margin-top:1rem">${r.verdict === 'ok' ? 'No major warning signs. Still ask for the Key Fact Statement.' : 'A safer route: ask your self-help group or a microfinance institution, or check the lender in RBI’s Digital Lending Apps directory.'}</p>`;
 }
+['#c-promised', '#c-received', '#c-repay', '#c-days'].forEach(id => $(id).addEventListener('input', runCheck));
+$('#c-questions').addEventListener('change', runCheck);
+$('#check-form').addEventListener('submit', e => { e.preventDefault(); runCheck(); });
+
+/* ---------------- pipeline ---------------- */
+const STAGES = [
+  { n: 'Prevent', app: false, who: 'SHGs · MFIs · volunteers', p: 'Remove the reason people borrow from scam apps.', items: ['Truth Check camps at SHG meetings', 'Fair small loans from SHGs and MFIs', 'WhatsApp / IVR lender check for basic phones'] },
+  { n: 'Detect', app: true, who: 'App · victims’ reports', p: 'Find the operator behind the app names.', items: ['Link reports by UPI ID, number, wording', 'Public only after 3 different people'] },
+  { n: 'Protect', app: true, who: 'App · counsellors', p: 'Answer each threat with the facts, in the moment.', items: ['Fear → fact for every threat', 'Contact warning in 3 languages', 'Counsellor callback for severe cases'] },
+  { n: 'Respond', app: false, who: 'Legal-aid clinics · cyber cells', p: 'Turn sealed evidence into a filed case.', items: ['Clinics help file at 1930', 'One bundled case per operator'] },
+  { n: 'Reform', app: false, who: 'Students · RBI · MeitY · Google Play', p: 'Make the numbers public so systems respond.', items: ['Public dashboard of operators', 'Quarterly brief to regulators'] }
+];
+$('#pipe').innerHTML = STAGES.map(s => `<li class="${s.app ? 'app' : ''}"><h3>${s.n}</h3><p class="who">${s.who}</p><p>${s.p}</p><ul>${s.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>${s.app ? '<span class="tag">In this app</span>' : ''}</li>`).join('');
+
+/* ---------------- operator map ---------------- */
+function allReports() { return state.mode === 'live' ? state.live.reports : LSDATA.SAMPLE_REPORTS.concat(state.myReports.filter(r => !r.shared)); }
 function renderGraph() {
   const reports = allReports();
   state.graph = LS.buildGraph(reports);
   $$('.seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === state.mode));
-  const live = state.mode === 'live';
-  $('#graph-status').innerHTML = live
-    ? (state.live.on ? `<span class="live-dot" aria-hidden="true"></span>Live: ${state.live.reports.length} report${state.live.reports.length === 1 ? '' : 's'} from ${new Set(state.live.reports.map(r => r.reporter)).size} ${new Set(state.live.reports.map(r => r.reporter)).size === 1 ? 'person' : 'people'}, updating as they arrive.${state.live.canWrite ? '' : ' You can read this graph; adding reports needs Contributor access.'}`
-                     : 'Live reports need you to open this page signed in to Claude. Showing nothing until then.')
-    : 'Sample data: 8 fictional reports, plus any you add on this device.';
-  if (live && !reports.length) {
-    $('#ops').innerHTML = `<div class="card empty-live"><h3>No live reports yet</h3><p>Scan a threatening message in the toolkit, then press <b>Add to scam graph</b>. It appears here for everyone with this link, and links to any operator that used the same UPI ID, number or script.</p></div>`;
-  } else {
-    $('#ops').innerHTML = state.graph.clusters.map(c => opCard(c, reports)).join('');
-  }
-  renderDash();
+  const live = state.mode === 'live', people = new Set(reports.map(r => r.reporter)).size;
+  $('#graph-status').innerHTML = live ? (state.live.on ? `<span class="live-dot"></span>Live: ${reports.length} report${reports.length === 1 ? '' : 's'} from ${people} ${people === 1 ? 'person' : 'people'}` : 'Live reports need this page opened through its Claude link.')
+    : 'Sample: 8 fictional reports, plus any you add on this device.';
+  const cl = state.graph.clusters, pub = cl.filter(c => c.published);
+  $('#stats').innerHTML = [[reports.length, 'reports'], [new Set(reports.map(r => r.app)).size, 'app names'], [cl.length, 'operators found'], [pub.length, 'published (3+ people)']].map(([b, s]) => `<div><b>${b}</b><span>${s}</span></div>`).join('');
+  $('#ops').innerHTML = live && !reports.length ? '<div class="op"><h3>No live reports yet</h3><p class="muted small" style="margin-top:.3rem">Flip a threat that contains a UPI ID or number, then press <b>Share identifiers</b>. It appears here for everyone with this link.</p></div>'
+    : cl.map(c => opCard(c, reports)).join('');
+  renderCase();
 }
 function setGraphMode(m) { state.mode = m; renderGraph(); }
 $$('.seg button').forEach(b => b.addEventListener('click', () => setGraphMode(b.dataset.mode)));
+function opCard(c, reports) {
+  const rs = c.idx.map(i => reports[i]), mine = rs.some(r => r.mine);
+  const ids = c.upi.map(u => ({ k: 'upi', v: u })).concat(c.phones.map(p => ({ k: 'phone', v: p })));
+  const rows = Math.max(c.apps.length, ids.length, 1), RH = 40, H = rows * RH + 16, W = 720, AX = 230, IX = 470;
+  const ay = i => 20 + i * RH + (rows - c.apps.length) * RH / 2, iy = i => 20 + i * RH + (rows - ids.length) * RH / 2;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(c.id)}: ${c.apps.length} app names linked by ${ids.length} identifiers">`;
+  const seen = new Set();
+  rs.forEach(r => { const a = c.apps.indexOf(r.app); (r.upi || []).concat(r.phones || []).forEach(v => { const j = ids.findIndex(x => x.v === v), k = a + ':' + j; if (a > -1 && j > -1 && !seen.has(k)) { seen.add(k); svg += `<line x1="${AX + 8}" y1="${ay(a)}" x2="${IX - 8}" y2="${iy(j)}" stroke="var(--line)" stroke-width="2"/>`; } }); });
+  c.apps.forEach((a, i) => { const you = rs.some(r => r.mine && r.app === a); svg += `<circle cx="${AX}" cy="${ay(i)}" r="8" fill="${you ? 'var(--marigold)' : 'var(--teal)'}"/><text x="${AX - 16}" y="${ay(i) + 5}" text-anchor="end" font-size="15" font-weight="700" fill="var(--ink)" font-family="var(--body)">${esc(a)}</text>`; });
+  ids.forEach((x, j) => svg += `<rect x="${IX - 7}" y="${iy(j) - 7}" width="14" height="14" rx="3" fill="${x.k === 'upi' ? 'var(--threat)' : 'var(--mute)'}"/><text x="${IX + 16}" y="${iy(j) + 5}" font-size="13" fill="var(--ink)" font-family="var(--mono)">${esc(x.k === 'phone' ? LS.maskPhone(x.v) : x.v)}</text>`);
+  if (!ids.length) svg += `<text x="${IX - 7}" y="${iy(0) + 5}" font-size="13" fill="var(--mute)" font-family="var(--body)">linked by the same wording</text>`;
+  svg += '</svg>';
+  return `<article class="op ${mine ? 'you' : ''}"><div class="op-head"><h3>${esc(c.id)}${mine ? ' <span class="pill watch" style="font-size:.72rem">Includes yours</span>' : ''}</h3><span class="pill ${c.published ? 'high' : ''}">${c.published ? 'Published' : `Held · ${c.reporters} of ${LS.PUBLISH_THRESHOLD} people`}</span></div>
+    <p class="op-meta">${c.reports} report${c.reports > 1 ? 's' : ''} · ${c.reporters} ${c.reporters > 1 ? 'people' : 'person'} · ${c.apps.length} app name${c.apps.length > 1 ? 's' : ''}</p><div class="graph-wrap">${svg}</div></article>`;
+}
 
-/* ---------------- live shared graph (db capability) ---------------- */
+/* live shared graph */
 async function pushLiveReport(rep) {
   try {
-    const ref = state.live.db.doc('reports/' + state.live.uid);
-    const snap = await ref.get();
-    const items = (snap.exists && Array.isArray(snap.data().items) ? snap.data().items.slice() : []).slice(-49);
-    items.push(rep);
-    await ref.set({ items, updated: Date.now() });
-    return true;
+    const ref = state.live.db.doc('reports/' + state.live.uid), snap = await ref.get();
+    const items = (snap.exists && Array.isArray(snap.data().items) ? snap.data().items.slice() : []).slice(-49); items.push(rep);
+    await ref.set({ items, updated: Date.now() }); return true;
   } catch (e) {
-    if (e && e.code === 'invalid_argument') { state.live.canWrite = false; toast('You can read the shared graph, but not add to it. Saved on this device instead.'); }
-    else if (e && e.code === 'quota_exceeded') toast('The shared graph is full. Saved on this device instead.');
-    else toast('Couldn\u2019t reach the shared graph. Saved on this device instead.');
-    return false;
+    if (e && e.code === 'invalid_argument') state.live.canWrite = false;
+    toast('Couldn’t reach the shared map. Saved on this device instead.'); return false;
   }
 }
 function liveToReports(docs) {
@@ -396,168 +339,24 @@ async function startLive() {
   const use = async n => { try { return cl ? await cl.use(n) : null; } catch (e) { return null; } };
   const [db, user, downloads, sample] = await Promise.all([use('db'), use('user'), use('downloads'), use('sample')]);
   state.downloads = downloads; state.sample = sample;
-  if (sample && state.lastScan) runScan();
-  if (!db || !user) { renderGraph(); return; }
-  const uid = await user.id().catch(() => null);
-  const can = await user.can('data.write').catch(() => null);
-  state.live.db = db; state.live.uid = uid; state.live.on = true; state.live.canWrite = !!uid && can !== false;
-  db.collection('reports').onSnapshot(snap => {
-    state.live.reports = liveToReports(snap.docs);
-    if (state.mode === 'live') renderGraph();
-  }, () => { state.live.on = false; if (state.mode === 'live') renderGraph(); });
-  setGraphMode('live');
-}
-function opCard(c, reports) {
-  const rs = c.idx.map(i => reports[i]);
-  const mine = rs.some(r => r.mine);
-  const ids = c.upi.map(u => ({ k: 'upi', v: u })).concat(c.phones.map(p => ({ k: 'phone', v: p })));
-  const rows = Math.max(c.apps.length, ids.length, 1), RH = 46, H = rows * RH + 24, W = 760;
-  const ay = i => 24 + i * RH + (rows - c.apps.length) * RH / 2;
-  const iy = i => 24 + i * RH + (rows - ids.length) * RH / 2;
-  const AX = 250, IX = 520;
-  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(c.id)}: ${c.apps.length} app names linked by ${ids.length} identifiers">`;
-  const seen = new Set();
-  rs.forEach(r => {
-    const a = c.apps.indexOf(r.app);
-    (r.upi || []).concat(r.phones || []).forEach(v => {
-      const j = ids.findIndex(x => x.v === v); const key = a + ':' + j;
-      if (a > -1 && j > -1 && !seen.has(key)) { seen.add(key); svg += `<line x1="${AX + 10}" y1="${ay(a)}" x2="${IX - 8}" y2="${iy(j)}" stroke="var(--mute-l)" stroke-width="1.5"/>`; }
-    });
-  });
-  const scriptPairs = new Set();
-  c.links.filter(l => l.why === 'same message script').forEach(l => {
-    const a = c.apps.indexOf(reports[l.a].app), b = c.apps.indexOf(reports[l.b].app);
-    if (a > -1 && b > -1 && a !== b) { const k = Math.min(a, b) + '-' + Math.max(a, b); if (!scriptPairs.has(k)) { scriptPairs.add(k); const y1 = ay(a), y2 = ay(b); svg += `<path d="M${AX} ${y1} C ${AX + 90} ${y1}, ${AX + 90} ${y2}, ${AX} ${y2}" fill="none" stroke="var(--mute-l)" stroke-width="2" stroke-dasharray="5 4"/>`; } }
-  });
-  c.apps.forEach((a, i) => {
-    const you = rs.some(r => r.mine && r.app === a);
-    svg += `<circle cx="${AX}" cy="${ay(i)}" r="9" fill="${you ? 'var(--green)' : 'var(--ink)'}"/><text x="${AX - 18}" y="${ay(i) + 5}" text-anchor="end" font-size="15" font-weight="700" fill="var(--ink)" font-family="var(--body)">${esc(a)}</text>`;
-  });
-  ids.forEach((x, j) => {
-    const label = x.k === 'phone' ? LS.maskPhone(x.v) : x.v;
-    svg += `<rect x="${IX - 8}" y="${iy(j) - 8}" width="16" height="16" rx="3" fill="${x.k === 'upi' ? 'var(--red)' : 'var(--amber)'}"/><text x="${IX + 18}" y="${iy(j) + 5}" font-size="14" fill="var(--ink)" font-family="var(--mono)">${esc(label)}</text>`;
-  });
-  if (!ids.length) svg += `<text x="${IX - 8}" y="${iy(0) + 5}" font-size="14" fill="var(--mute-l)" font-family="var(--body)">no shared identifiers yet</text>`;
-  svg += '</svg>';
-  return `<article class="card op ${mine ? 'you' : ''}">
-    <div class="op-head">
-      <h3>${esc(c.id)}${mine ? ' <span class="tag g flat" style="font-size:.7rem;vertical-align:middle">Includes your report</span>' : ''}</h3>
-      <span class="pill ${c.published ? 'danger' : 'watch'}">${c.published ? 'Published' : `Held: ${c.reporters} of ${LS.PUBLISH_THRESHOLD} people`}</span>
-    </div>
-    <p class="op-meta">${c.reports} report${c.reports > 1 ? 's' : ''} from ${c.reporters} ${c.reporters > 1 ? 'people' : 'person'} · ${c.apps.length} app name${c.apps.length > 1 ? 's' : ''} · first reported on day ${c.firstSeen}</p>
-    <div class="graph-wrap">${svg}</div>
-  </article>`;
-}
-function daysToPublish(c, reports) {
-  const rs = c.idx.map(i => reports[i]).sort((a, b) => a.day - b.day);
-  const seen = new Set();
-  for (const r of rs) { seen.add(r.reporter); if (seen.size >= LS.PUBLISH_THRESHOLD) return r.day - rs[0].day; }
-  return null;
-}
-function renderDash() {
-  const reports = allReports(), cl = state.graph.clusters;
-  const pub = cl.filter(c => c.published);
-  const apps = new Set(reports.map(r => r.app));
-  const dtp = pub.map(c => daysToPublish(c, reports)).filter(x => x !== null).sort((a, b) => a - b);
-  const median = dtp.length ? dtp[Math.floor((dtp.length - 1) / 2)] : '–';
-  const pubApps = pub.reduce((s, c) => s + c.apps.length, 0);
-  const tiles = [
-    [reports.length, 'reports received'],
-    [apps.size, 'app names seen'],
-    [`${pub.length} of ${cl.length}`, 'operators published'],
-    [pub.length ? (pubApps / pub.length).toFixed(1) : '–', 'app names per published operator'],
-    [median, 'median days from first report to publishing']
-  ];
-  $('#dash').innerHTML = tiles.map(([b, s]) => `<div class="card"><b>${esc(b)}</b><span>${esc(s)}</span></div>`).join('');
+  if (sample && state.flip) flip(state.flip.text);
+  if (!db || !user) { $('.seg button[data-mode=live]').disabled = true; return; }
+  const uid = await user.id().catch(() => null), can = await user.can('data.write').catch(() => null);
+  Object.assign(state.live, { db, uid, on: true, canWrite: !!uid && can !== false });
+  db.collection('reports').onSnapshot(snap => { state.live.reports = liveToReports(snap.docs); if (state.mode === 'live') renderGraph(); }, () => { state.live.on = false; });
 }
 
-/* ---------------- ecosystem ---------------- */
-const STAGES = [
-  { name: 'Prevent', icon: 'i-calc', kind: 'community', color: 'r', sub: 'Before borrowing',
-    tagline: 'Remove the reason people reach for scam apps.',
-    tech: 'Loan Truth Check and a WhatsApp or IVR line that checks a lender against RBI’s DLA directory. Works on basic phones.',
-    people: 'SHGs and microfinance institutions offer a fair small-loan route. Student volunteers run Truth Check camps at SHG meetings.',
-    roles: [['Borrowers', 'check a loan before taking it'], ['SHGs and MFIs', 'offer the fair alternative'], ['Banks and NBFCs', 'keep their apps listed with RBI']],
-    sdg: [['s1', '1.4'], ['s1', '1.5'], ['s8', '8.10']] },
-  { name: 'Detect', icon: 'i-link', kind: 'tech', color: 'g', sub: 'Link the rebrands',
-    tagline: 'Find the operator, not just the app name.',
-    tech: 'The scam graph links reports by UPI ID, phone number and message script, then publishes an operator after 3 different people report it.',
-    people: 'Victims’ own reports are the sensor. The 3-person rule stops anyone from listing a rival out of spite.',
-    roles: [['Borrowers', 'report identifiers with consent'], ['Google Play', 'takes down lookalikes of a listed operator'], ['Telecoms', 'act on numbers reported through Chakshu']],
-    sdg: [['s16', '16.4']] },
-  { name: 'Protect', icon: 'i-shield', kind: 'tech', color: 'g', sub: 'During harassment',
-    tagline: 'Help in the moment, without reading your private messages.',
-    tech: 'Share-in threat scanner, Contact Shield warnings, call screening for numbers linked to an operator, and a hash-chained evidence vault.',
-    people: 'A severe threat shows the 1930 and Tele-MANAS numbers and offers a volunteer callback.',
-    roles: [['Borrowers', 'share and save what scares them'], ['NGO counsellors', 'call back within a day']],
-    sdg: [['s10', '10.2'], ['s16', '16.3']] },
-  { name: 'Respond', icon: 'i-doc', kind: 'community', color: 'r', sub: 'Get justice',
-    tagline: 'Evidence, plus a person who listens.',
-    tech: 'A complaint packet that names the rules broken (RBI, BNS, IT Act), lists SHA-256 hashes for a Section 63 certificate, and bundles one case per operator.',
-    people: 'Legal-aid clinics and trained volunteers help victims file. Victims of the same operator are filed together.',
-    roles: [['Cyber cells and I4C', 'receive one case per operator'], ['Legal-aid clinics', 'help file and follow up'], ['Volunteers', 'reduce the shame that stops reporting']],
-    sdg: [['s16', '16.3']] },
-  { name: 'Reform', icon: 'i-chart', kind: 'tech', color: 'g', sub: 'Close the loop',
-    tagline: 'What gets counted in public gets fixed.',
-    tech: 'A public dashboard: operators, app names per operator, and days from first report to action.',
-    people: 'Students publish a quarterly brief for RBI, MeitY and Google Play. Hotspots decide where the next Prevent camps go.',
-    roles: [['RBI and MeitY', 'block operators, not single names'], ['Google Play', 'reports its response time'], ['Media and researchers', 'keep pressure on']],
-    sdg: [['s16', '16.6']] }
-];
-const stagesEl = $('#stages');
-STAGES.forEach((s, i) => {
-  stagesEl.insertAdjacentHTML('beforeend', `<li><button class="stage-btn" type="button" aria-pressed="false" data-i="${i}"><span class="badge lg ${s.color === 'g' ? 'g' : ''}" style="transform:rotate(${i % 2 ? 4 : -4}deg)">${ico(s.icon)}</span><span><span class="nm">${s.name}</span><span class="sub">${s.sub}</span></span></button>${i < 4 ? '<span class="arrow" aria-hidden="true">→</span>' : ''}</li>`);
-});
-function showStage(i) {
-  const s = STAGES[i];
-  $$('.stage-btn').forEach((b, j) => b.setAttribute('aria-pressed', i === j));
-  $('#stage-panel').innerHTML = `<h3>${s.name} <span class="tag ${s.kind === 'community' ? '' : 'g'}">${s.kind === 'community' ? 'Community-led' : 'Tech-led'}</span></h3>
-    <p style="margin:0">${esc(s.tagline)}</p>
-    <div class="split"><div class="half t"><h4>Tech</h4><p>${esc(s.tech)}</p></div><div class="half c"><h4>People</h4><p>${esc(s.people)}</p></div></div>
-    <ul class="roles">${s.roles.map(([w, r]) => `<li><b>${esc(w)}</b> ${esc(r)}</li>`).join('')}</ul>
-    <p style="margin:1rem 0 0" class="small">SDG targets: ${s.sdg.map(([c, t]) => `<span class="sdg-mini ${c}">${t}</span>`).join('')}</p>`;
-}
-stagesEl.addEventListener('click', e => { const b = e.target.closest('.stage-btn'); if (b) showStage(+b.dataset.i); });
-showStage(0);
+/* validation line */
+(function () {
+  let tp = 0, fp = 0, fn = 0;
+  LSDATA.TEST_SET.forEach(([y, m]) => { const p = LS.scanMessage(m).score >= 40 ? 1 : 0; if (p && y) tp++; else if (p) fp++; else if (y) fn++; });
+  $('#val-line').textContent = `Threat scanner on 50 test messages: ${Math.round(tp / (tp + fn) * 100)}% recall, ${Math.round(tp / (tp + fp) * 100)}% precision.`;
+})();
 
-/* ---------------- validation (live) ---------------- */
-function renderValidation() {
-  let tp = 0, fp = 0, tn = 0, fn = 0; const wrong = [];
-  const rows = LSDATA.TEST_SET.map(([y, m]) => {
-    const r = LS.scanMessage(m), p = r.score >= 40 ? 1 : 0;
-    if (p && y) tp++; else if (p && !y) { fp++; wrong.push({ type: 'False alarm', m, r }); } else if (!p && !y) tn++; else { fn++; wrong.push({ type: 'Missed', m, r }); }
-    return { y, m, p, r };
-  });
-  const prec = tp / (tp + fp || 1), rec = tp / (tp + fn || 1), f1 = 2 * prec * rec / (prec + rec || 1);
-  const pc = x => Math.round(x * 100) + '%';
-  $('#val-scores').innerHTML = `<div><b>${pc(rec)}</b><span>of harassment caught (recall)</span></div><div><b>${pc(prec)}</b><span>of flags were right (precision)</span></div><div><b>${f1.toFixed(2)}</b><span>F1 score</span></div>`;
-  $('#val-cm').innerHTML = `<div class="h"></div><div class="h">Flagged</div><div class="h">Not flagged</div>
-    <div class="h" style="text-align:right">Harassment</div><div class="good"><span class="v">${tp}</span></div><div class="badc"><span class="v">${fn}</span></div>
-    <div class="h" style="text-align:right">Ordinary</div><div class="badc"><span class="v">${fp}</span></div><div class="good"><span class="v">${tn}</span></div>`;
-  $('#val-miss').innerHTML = wrong.length ? wrong.map(w => {
-    const why = w.type === 'False alarm'
-      ? `One cue on its own (${w.r.hits.map(h => '“' + h.phrases[0] + '”').join(', ')}) with no threat around it. The scanner reads words, not intent.`
-      : `Scored ${w.r.score}. The threat is there but uses words not yet in the list.`;
-    return `<li><span class="pill ${w.type === 'Missed' ? 'high' : 'watch'}" style="margin-bottom:.4rem">${w.type} · score ${w.r.score}</span><br>“${esc(w.m)}”<span class="why">${esc(why)}</span></li>`;
-  }).join('') : '<li>No errors on this set.</li>';
-  $('#val-set').innerHTML = rows.map(x => `<li><span class="lbl" style="background:${x.y ? 'var(--red)' : 'var(--green)'}">${x.y ? 'Harassment' : 'Ordinary'}</span>${esc(x.m)} <span class="muted">(score ${x.r.score}${x.p === x.y ? '' : ', wrong'})</span></li>`).join('');
-}
-
-/* ---------------- nav highlight ---------------- */
-const navLinks = $$('nav.top a.l');
-if ('IntersectionObserver' in window) {
-  const io = new IntersectionObserver(es => es.forEach(en => {
-    if (en.isIntersecting) navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + en.target.id));
-  }), { rootMargin: '-45% 0px -50% 0px' });
-  navLinks.forEach(a => { const s = document.querySelector(a.getAttribute('href')); if (s) io.observe(s); });
-}
-
-/* ---------------- boot ---------------- */
-runCheck();
-runScan();
+/* boot */
 renderGraph();
-renderVault().then(() => { if (state.chain.length) verify(state.chain); });
-renderValidation();
-refreshPacket();
+runCheck();
+$('#msg').value = EXAMPLES[0];
+flip(EXAMPLES[0]);
 startLive();
 })();
