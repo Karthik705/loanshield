@@ -54,6 +54,13 @@ function quote(text, phrase) {
   return (a > 0 ? '…' : '') + s.split(re).map((p, k) => k % 2 ? `<mark>${esc(p)}</mark>` : esc(p)).join('') + (b < t.length ? '…' : '');
 }
 
+const ICON = { legal: 'i-scale', image: 'i-image', contacts: 'i-users', shame: 'i-chat', violence: 'i-alert', urgency: 'i-clock', fees: 'i-rupee', time: 'i-clock' };
+function card(kind, icon, quoteHtml, head, body, laws) {
+  return `<button type="button" class="fcard" aria-label="${esc(kind)}: show the fact"><span class="inner">
+    <span class="face front"><span class="kind"><span class="ic">${ico(icon)}</span>${esc(kind)}</span><q>${quoteHtml}</q><span class="turn">${ico('i-flip')}Tap to flip</span></span>
+    <span class="face back"><span class="kind"><span class="ic">${ico('i-check')}</span>The fact</span><b>${esc(head)}</b><p>${esc(body)}</p>${laws.length ? `<span class="laws">${laws.map(l => `<span class="law">${esc(l)}</span>`).join('')}</span>` : ''}<span class="turn">${ico('i-flip')}Tap to see the threat</span></span>
+  </span></button>`;
+}
 function flip(text, opts) {
   text = text.trim();
   const box = $('#result');
@@ -61,25 +68,28 @@ function flip(text, opts) {
   const scan = LS.scanMessage(text);
   const rights = LS.rightsFor(scan, text);
   const late = LS.callTimes(text).filter(t => t.outside);
-  state.flip = { text, scan, rights, late, saved: state.chain.some(e => e.text === text) };
+  state.flip = { text, scan, rights, late };
   const hits = scan.hits.slice().sort((a, b) => ORDER.indexOf(a.cat) - ORDER.indexOf(b.cat));
-  const pairs = hits.map(h => {
-    const f = FACTS[h.cat]; if (!f) return '';
+  const cards = hits.filter(h => FACTS[h.cat]).map(h => {
+    const f = FACTS[h.cat];
     const laws = (RULE_FOR[h.cat] || []).map(id => LS.RIGHTS[id].short);
-    if (h.cat === 'urgency' || h.cat === 'contacts') { if (rights.some(r => r.id === 'bns308')) laws.push(LS.RIGHTS.bns308.short); }
-    return `<li class="flip"><div class="said"><span class="who">${esc(f.who)}</span><q>${quote(text, h.phrases[0])}</q></div><span class="arrow" aria-hidden="true">→</span>
-      <div class="fact"><b>${esc(f.head)}</b><p>${esc(f.body)}</p>${laws.length ? `<div class="laws">${[...new Set(laws)].map(l => `<span class="law">${esc(l)}</span>`).join('')}</div>` : ''}</div></li>`;
+    if ((h.cat === 'urgency' || h.cat === 'contacts') && rights.some(r => r.id === 'bns308')) laws.push(LS.RIGHTS.bns308.short);
+    return card(f.who, ICON[h.cat], quote(text, h.phrases[0]), f.head, f.body, [...new Set(laws)]);
   });
-  late.forEach(t => pairs.push(`<li class="flip"><div class="said"><span class="who">Call time</span><q><mark>${esc(t.raw)}</mark></q></div><span class="arrow" aria-hidden="true">→</span>
-    <div class="fact"><b>Recovery calls at this hour are not allowed.</b><p>RBI rules let recovery agents call only between 8 am and 7 pm. Note every late call; each one counts.</p><div class="laws"><span class="law">RBI calling hours</span></div></div></li>`));
-  const nThreat = hits.filter(h => FACTS[h.cat]).length + late.length;
+  late.forEach(t => cards.push(card('Call time', 'i-clock', `Called at <mark>${esc(t.raw)}</mark>`, 'Recovery calls at this hour are not allowed.', 'RBI rules allow recovery calls only between 8 am and 7 pm. Log every late call.', ['RBI calling hours'])));
+  const n = cards.length;
   box.innerHTML = `
-    <div class="verdict"><span class="pill ${scan.level}">${esc(scan.levelLabel)}</span>
-      <span class="small muted">${nThreat ? `${nThreat} threat${nThreat > 1 ? 's' : ''} flipped · ${rights.length} rule${rights.length === 1 ? '' : 's'} this may break` : 'No threat words found'}</span></div>
-    ${pairs.length ? `<ul class="flip-list">${pairs.join('')}</ul>` : `<div class="none"><b>No threat words found.</b> <span class="muted">If the message still frightened you, save it anyway. The word list misses new wording${state.sample ? '; you can ask the AI below' : ''}.</span></div>`}
-    ${scan.needsSupport ? `<div class="support"><span>You are not alone, and you do not have to pay to make this stop.</span><span><b class="n">1930</b> cybercrime</span><span><b class="n">14416</b> Tele-MANAS</span>${hits.some(h => h.cat === 'violence') ? '<span><b class="n">112</b> danger</span>' : ''}</div>` : ''}
-    <div class="case" id="case"></div>
-    ${state.sample ? `<div class="ai" id="ai-box"><button class="link-btn" type="button" id="ai-btn">Ask AI to read it (any language)</button> <span class="small muted">Sends the text to Claude.</span></div>` : ''}`;
+    <div class="verdict rise"><span class="pill ${scan.level}">${esc(scan.levelLabel)}</span>
+      <div class="meter" aria-label="Threat score ${scan.score} out of 100"><span class="small muted">Calm</span><span class="track"><i style="left:${Math.max(4, Math.min(96, scan.score))}%"></i></span><span class="small muted">Severe</span></div>
+      ${n ? `<span class="hint">${ico('i-flip')}${n} threat${n > 1 ? 's' : ''} flipped</span>` : ''}</div>
+    ${n ? `<div class="cards">${cards.join('')}</div>` : `<div class="none rise"><b>No threat words found.</b> <span class="muted">If it still frightened you, seal it anyway. The word list can miss new wording${state.sample ? ', so try the AI reading below' : ''}.</span></div>`}
+    ${scan.needsSupport ? `<div class="support rise"><span>You don’t have to pay to make this stop.</span><span class="n"><b>1930</b>cybercrime</span><span class="n"><b>14416</b>Tele-MANAS</span>${hits.some(h => h.cat === 'violence') ? '<span class="n"><b>112</b>danger</span>' : ''}</div>` : ''}
+    <div class="case rise" id="case"></div>
+    ${state.sample ? `<div class="ai" id="ai-box"><button class="link-btn" type="button" id="ai-btn">Not sure? Ask AI to read it, in any language</button></div>` : ''}`;
+  $$('#result .fcard').forEach((c, i) => {
+    c.addEventListener('click', () => c.classList.toggle('flipped'));
+    setTimeout(() => c.classList.add('flipped'), 650 + i * 350);
+  });
   renderCase();
   const ai = $('#ai-btn'); if (ai) ai.addEventListener('click', () => askAI(text));
   if (opts && opts.scroll) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -93,28 +103,27 @@ function renderCase() {
   const el = $('#case'); if (!el || !state.flip) return;
   const f = state.flip, ids = f.scan.ids;
   const saved = state.chain.find(e => e.text === f.text);
-  const idx = saved ? state.chain.indexOf(saved) + 1 : 0;
   const cl = matchCluster(ids);
   const hasIds = ids.upi.length + ids.phones.length > 0;
   const reported = state.myReports.some(r => r.text === f.text);
-  const opLine = cl ? `Same ${cl.upi.some(u => ids.upi.includes(u)) ? 'UPI ID' : 'number'} as <b>${esc(cl.id)}</b>: ${cl.reporters} ${cl.reporters > 1 ? 'people' : 'person'}, ${cl.apps.length} app name${cl.apps.length > 1 ? 's' : ''} (${cl.apps.map(esc).join(', ')}). ${cl.published ? 'Published.' : `Held until ${LS.PUBLISH_THRESHOLD} people report it.`}`
-    : hasIds ? `${[...ids.upi, ...ids.phones.map(LS.maskPhone)].map(x => `<code>${esc(x)}</code>`).join(', ')}. No match yet.` : 'No UPI ID or number in this message.';
   const steps = [
-    { on: !!saved, icon: 'i-lock', t: saved ? `Sealed as evidence item #${idx}` : 'Seal it as evidence', d: saved ? `SHA-256 <code>${saved.hash.slice(0, 16)}…</code> · stored on this device` : 'Timestamped and hash-chained, so it holds up later.',
-      act: saved ? `<button class="btn ghost sm" type="button" data-open="dlg-vault">View (${state.chain.length})</button>` : `<button class="btn primary sm" type="button" id="seal">Add to my case</button>` },
-    { on: f.rights.length > 0, icon: 'i-scale', t: f.rights.length ? `${f.rights.length} rule${f.rights.length > 1 ? 's' : ''} this may break` : 'No rule matched', d: f.rights.length ? f.rights.map(r => esc(r.short)).join(' · ') : 'Legal aid can still advise you.', act: '' },
-    { on: !!cl || reported, icon: 'i-link', t: cl ? 'Linked to an operator' : 'Operator', d: opLine,
-      act: hasIds ? (reported ? '<span class="small muted">Shared</span>' : `<button class="btn ghost sm" type="button" id="report">Share identifiers</button>`) : '' },
-    { on: !!state.shieldSent, icon: 'i-users', t: 'Warn your contacts first', d: 'A ready message in English, Hindi or Tamil.', act: `<button class="btn ghost sm" type="button" data-open="dlg-shield">Write it</button>` },
-    { on: false, icon: 'i-doc', t: 'Complaint packet', d: 'Everything above, ready for legal aid or 1930.', act: `<button class="btn ghost sm" type="button" data-open="dlg-packet">Build it</button>` }
+    { on: !!saved, icon: 'i-lock', t: saved ? 'Sealed' : 'Seal it', d: saved ? `Item #${state.chain.indexOf(saved) + 1} · <code>${saved.hash.slice(0, 8)}</code>` : 'Tamper-proof evidence',
+      act: saved ? `<button class="btn ghost sm" type="button" data-open="dlg-vault">View all</button>` : `<button class="btn primary sm" type="button" id="seal">Seal</button>` },
+    { on: f.rights.length > 0, icon: 'i-scale', t: `${f.rights.length} law${f.rights.length === 1 ? '' : 's'}`, d: f.rights.length ? f.rights.map(r => esc(r.short)).join(', ') : 'None matched', act: '' },
+    { on: !!cl, icon: 'i-link', t: cl ? cl.id : 'Operator', d: cl ? `${cl.reporters} people · ${cl.apps.length} app names` : hasIds ? 'No match yet' : 'No UPI ID or number',
+      act: hasIds ? (reported ? '<span class="small muted">Shared</span>' : `<button class="btn ghost sm" type="button" id="report">Share IDs</button>`) : '' },
+    { on: !!state.shieldSent, icon: 'i-users', t: 'Warn contacts', d: 'Before they do', act: `<button class="btn ghost sm" type="button" data-open="dlg-shield">${state.shieldSent ? 'Sent' : 'Write it'}</button>` },
+    { on: false, icon: 'i-doc', t: 'Complaint', d: 'For legal aid or 1930', act: `<button class="btn ghost sm" type="button" data-open="dlg-packet">Build</button>` }
   ];
-  const strength = steps.filter(s => s.on).length;
-  el.innerHTML = `<div class="case-head"><h3>Your case</h3><span class="small muted num">${strength} of 5 in place</span></div>
-    <ol class="case-steps">${steps.map(s => `<li><span class="dot ${s.on ? 'on' : ''}">${ico(s.on ? 'i-check' : s.icon)}</span><div><div class="t">${s.t}</div><div class="d">${s.d}</div></div><div class="act">${s.act}</div></li>`).join('')}</ol>
-    ${hasIds && !reported ? `<p class="small muted" style="padding:0 1.2rem 1rem">Sharing adds only the UPI IDs, numbers and wording to the operator map${state.live.canWrite ? ' for everyone with this link' : ' on this device'}. Never your name or contacts.</p>` : ''}`;
+  const on = steps.filter(s => s.on).length;
+  const last = steps.reduce((m, s, i) => s.on ? i : m, -1);
+  el.innerHTML = `<div class="case-head"><h3>Your case is building</h3><span class="score num">${on} / 5</span></div>
+    <ol class="steps"><span class="fill" style="width:${last > 0 ? last * 20 : 0}%"></span>${steps.map(s => `<li class="${s.on ? 'on' : ''}"><span class="node">${ico(s.on ? 'i-check' : s.icon)}</span><div><div class="t">${s.t}</div><div class="d">${s.d}</div></div><div class="act">${s.act}</div></li>`).join('')}</ol>
+    ${hasIds && !reported ? `<p class="consent">Sharing adds only the UPI IDs, numbers and wording to the operator map${state.live.canWrite ? ' for everyone with this link' : ' on this device'}. Never your name or contacts.</p>` : ''}`;
   const s = $('#seal'); if (s) s.addEventListener('click', async () => { await addToVault('message', f.text); });
   const r = $('#report'); if (r) r.addEventListener('click', () => reportFlip());
 }
+
 document.addEventListener('click', e => {
   const o = e.target.closest('[data-open]'); if (o) openDlg(o.dataset.open);
   if (e.target.closest('[data-close]')) e.target.closest('dialog').close();
@@ -248,34 +257,63 @@ function copyText(t, el, msg) {
 
 /* ---------------- Before you borrow ---------------- */
 LS.RED_FLAG_QUESTIONS.forEach(q => $('#c-questions').insertAdjacentHTML('beforeend', `<label class="check"><input type="checkbox" value="${q.id}"><span>${esc(q.q)}</span></label>`));
-function runCheck() {
-  const v = id => $(id).value.replace(/[,\s₹]/g, '');
-  const input = { promised: v('#c-promised'), received: v('#c-received'), repay: v('#c-repay'), days: v('#c-days'), answers: $$('#c-questions input:checked').map(i => i.value) };
+function runCheck(e) {
+  const g = id => +$(id).value;
+  // keep the sliders consistent: received ≤ promised, repay ≥ received
+  if (g('#c-received') > g('#c-promised')) { if (e && e.target.id === 'c-promised') $('#c-received').value = g('#c-promised'); else $('#c-promised').value = g('#c-received'); }
+  if (g('#c-repay') < g('#c-received')) $('#c-repay').value = g('#c-received');
+  $('#o-promised').textContent = '₹' + LS.fmt(g('#c-promised'));
+  $('#o-received').textContent = '₹' + LS.fmt(g('#c-received'));
+  $('#o-repay').textContent = '₹' + LS.fmt(g('#c-repay'));
+  $('#o-days').textContent = g('#c-days') + ' days';
+  const input = { promised: g('#c-promised'), received: g('#c-received'), repay: g('#c-repay'), days: g('#c-days'), answers: $$('#c-questions input:checked').map(i => i.value) };
   const r = LS.truthCheck(input), out = $('#check-out');
-  if (r.error) { out.innerHTML = `<p class="muted">${esc(r.error)}</p>`; state.truth = null; return; }
-  state.truth = { promised: +input.promised, received: +input.received, repay: +input.repay, days: +input.days, apr: r.apr, app: '' };
-  const apr = Math.round(r.apr), scale = Math.max(apr, 40);
-  const bars = [['This app', apr, 'them'], ['Credit card, about', 42, ''], ['SHG / microfinance, up to', 26, '']];
-  out.innerHTML = `<p class="eyebrow">Real yearly cost</p>
-    <div class="apr ${r.verdict}" style="margin-top:.5rem">${LS.fmt(apr)}%</div>
-    <p class="apr-sub">You pay ₹${LS.fmt(r.totalCost)} on top of the ₹${LS.fmt(+input.received)} that reaches you. That is ₹${LS.fmt(Math.round(r.perDay))} a day.</p>
+  if (r.error) { out.innerHTML = `<p>${esc(r.error)}</p>`; state.truth = null; return; }
+  state.truth = { ...input, apr: r.apr, app: '' };
+  const apr = Math.round(r.apr), scale = Math.max(apr, 50);
+  const bars = [['This app', apr, 'them'], ['Credit card', 42, ''], ['SHG / MFI loan', 26, '']];
+  out.innerHTML = `<span class="eyebrow">Real yearly cost</span>
+    <div class="apr ${r.verdict}">${LS.fmt(apr)}%</div>
+    <p class="apr-sub">₹${LS.fmt(r.totalCost)} extra on ₹${LS.fmt(input.received)}. That’s ₹${LS.fmt(Math.round(r.perDay))} every day.</p>
     <div class="compare">${bars.map(([l, x, c]) => `<div class="bar ${c}"><span>${l}</span><span class="track"><i style="width:${Math.max(2, Math.min(100, x / scale * 100))}%"></i></span><span class="v">${LS.fmt(x)}%</span></div>`).join('')}</div>
-    ${r.flags.length ? `<ul class="flag-list">${r.flags.slice(0, 4).map(f => `<li>${esc(f.text)}</li>`).join('')}</ul>` : ''}
-    <p class="small muted" style="margin-top:1rem">${r.verdict === 'ok' ? 'No major warning signs. Still ask for the Key Fact Statement.' : 'A safer route: ask your self-help group or a microfinance institution, or check the lender in RBI’s Digital Lending Apps directory.'}</p>`;
+    ${r.flags.length ? `<ul class="flag-list">${r.flags.slice(0, 3).map(f => `<li>${esc(f.text)}</li>`).join('')}</ul>` : ''}
+    <p class="safer">${r.verdict === 'ok' ? 'No major warning signs. Still ask for the Key Fact Statement.' : 'Safer: ask your self-help group or a microfinance institution, or check the lender in RBI’s Digital Lending Apps directory.'}</p>`;
 }
 ['#c-promised', '#c-received', '#c-repay', '#c-days'].forEach(id => $(id).addEventListener('input', runCheck));
 $('#c-questions').addEventListener('change', runCheck);
 $('#check-form').addEventListener('submit', e => { e.preventDefault(); runCheck(); });
 
-/* ---------------- pipeline ---------------- */
+/* ---------------- system loop ---------------- */
 const STAGES = [
-  { n: 'Prevent', app: false, who: 'SHGs · MFIs · volunteers', p: 'Remove the reason people borrow from scam apps.', items: ['Truth Check camps at SHG meetings', 'Fair small loans from SHGs and MFIs', 'WhatsApp / IVR lender check for basic phones'] },
-  { n: 'Detect', app: true, who: 'App · victims’ reports', p: 'Find the operator behind the app names.', items: ['Link reports by UPI ID, number, wording', 'Public only after 3 different people'] },
-  { n: 'Protect', app: true, who: 'App · counsellors', p: 'Answer each threat with the facts, in the moment.', items: ['Fear → fact for every threat', 'Contact warning in 3 languages', 'Counsellor callback for severe cases'] },
-  { n: 'Respond', app: false, who: 'Legal-aid clinics · cyber cells', p: 'Turn sealed evidence into a filed case.', items: ['Clinics help file at 1930', 'One bundled case per operator'] },
-  { n: 'Reform', app: false, who: 'Students · RBI · MeitY · Google Play', p: 'Make the numbers public so systems respond.', items: ['Public dashboard of operators', 'Quarterly brief to regulators'] }
+  { n: 'Prevent', icon: 'i-calc', app: false, who: 'SHGs, MFIs, student volunteers', p: 'Remove the reason people borrow from scam apps.', items: ['Truth Check camps at SHG meetings and colleges', 'Fair small loans from SHGs and microfinance', 'WhatsApp / IVR lender check for basic phones'] },
+  { n: 'Detect', icon: 'i-search', app: true, who: 'This app + victims’ reports', p: 'Find the operator behind the app names.', items: ['Links reports by UPI ID, number and wording', 'Public only after 3 different people report it', 'Sent to MeitY, Google Play and telecoms as one case'] },
+  { n: 'Protect', icon: 'i-shield', app: true, who: 'This app + NGO counsellors', p: 'Answer each threat with the facts, in the moment.', items: ['Flips every threat into the fact and the law', 'Contact warning in English, Hindi and Tamil', 'Counsellor callback for severe cases'] },
+  { n: 'Respond', icon: 'i-scale', app: false, who: 'Legal-aid clinics, cyber cells', p: 'Turn sealed evidence into a filed case.', items: ['Law-college clinics help victims file at 1930', 'Victims of one operator filed together', 'Hash list supports a Sec. 63 BSA certificate'] },
+  { n: 'Reform', icon: 'i-chart', app: false, who: 'Students, RBI, MeitY, Google Play', p: 'Make the numbers public so the system responds.', items: ['Public dashboard of operators and response times', 'Quarterly brief to regulators', 'Hotspots decide the next Prevent camps'] }
 ];
-$('#pipe').innerHTML = STAGES.map(s => `<li class="${s.app ? 'app' : ''}"><h3>${s.n}</h3><p class="who">${s.who}</p><p>${s.p}</p><ul>${s.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>${s.app ? '<span class="tag">In this app</span>' : ''}</li>`).join('');
+const loop = $('#loop');
+STAGES.forEach((s, i) => {
+  const a = -Math.PI / 2 + i * 2 * Math.PI / 5, x = 50 + 38 * Math.cos(a), y = 50 + 38 * Math.sin(a);
+  loop.insertAdjacentHTML('beforeend', `<button type="button" class="stage ${s.app ? 'app' : ''}" style="left:${x}%;top:${y}%" data-i="${i}" aria-pressed="false">${ico(s.icon)}<span>${s.n}</span></button>`);
+});
+function showStage(i) {
+  const s = STAGES[i];
+  $$('.stage').forEach((b, j) => b.setAttribute('aria-pressed', i === j));
+  $('#stage-panel').innerHTML = `<span class="eyebrow">Stage ${i + 1} of 5</span><h3 style="margin-top:.6rem">${s.n}</h3>
+    <span class="who ${s.app ? 'app' : 'ppl'}">${ico(s.app ? 'i-shield' : 'i-users')}${esc(s.who)}</span>
+    <p class="big">${esc(s.p)}</p><ul>${s.items.map(t => `<li>${ico('i-check')}<span>${esc(t)}</span></li>`).join('')}</ul>`;
+}
+loop.addEventListener('click', e => { const b = e.target.closest('.stage'); if (b) showStage(+b.dataset.i); });
+showStage(2);
+
+/* hero demo: flip the three bubbles in turn */
+(function () {
+  const cs = $$('[data-demo]'); if (!cs.length) return;
+  const still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (still) { cs.forEach(c => c.classList.add('flipped')); return; }
+  let k = 0;
+  setInterval(() => { const i = k % (cs.length + 1); if (i === cs.length) cs.forEach(c => c.classList.remove('flipped')); else cs[i].classList.add('flipped'); k++; }, 1600);
+})();
 
 /* ---------------- operator map ---------------- */
 function allReports() { return state.mode === 'live' ? state.live.reports : LSDATA.SAMPLE_REPORTS.concat(state.myReports.filter(r => !r.shared)); }
@@ -350,7 +388,7 @@ async function startLive() {
 (function () {
   let tp = 0, fp = 0, fn = 0;
   LSDATA.TEST_SET.forEach(([y, m]) => { const p = LS.scanMessage(m).score >= 40 ? 1 : 0; if (p && y) tp++; else if (p) fp++; else if (y) fn++; });
-  $('#val-line').textContent = `Threat scanner on 50 test messages: ${Math.round(tp / (tp + fn) * 100)}% recall, ${Math.round(tp / (tp + fp) * 100)}% precision.`;
+  $('#val-line').textContent = `Scanner on 50 test messages: ${Math.round(tp / (tp + fn) * 100)}% recall, ${Math.round(tp / (tp + fp) * 100)}% precision.`;
 })();
 
 /* boot */

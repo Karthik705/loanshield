@@ -4,243 +4,338 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>LoanShield</title>
-<meta name="description" content="Paste a threat from an illegal loan app. LoanShield shows what is actually true, names the law it breaks, and turns the message into evidence against the people who sent it.">
+<meta name="description" content="Paste a threat from an illegal loan app. LoanShield flips each threat into the facts, names the law it breaks, and turns the message into evidence against the people who sent it.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B5D5A'/%3E%3Cpath d='M16 6l8 3v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V9z' fill='%23F2B33D'/%3E%3C/svg%3E">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
-/* Layout: one calm column for the tool (the threat on the left, the fact on the right), wider bands below for the pipeline and the operator map. */
+/* Layout: a deep-teal hero with a live phone, then alternating light and dark bands; every section leads with one visual, words come second. */
 :root{
-  --bg:#EEF2F0;        /* pale sage paper */
-  --surface:#FFFFFF;
-  --sunk:#E3E9E6;
-  --ink:#14201E;       /* deep green-black */
-  --mute:#5B6B67;
-  --line:#D3DCD8;
-  --teal:#0B5D5A;      /* accent: the fact side */
-  --teal-soft:#DCEDEA;
-  --marigold:#F2B33D;  /* highlight: the threat words */
-  --marigold-soft:#FCEFD2;
-  --threat:#B4372E;    /* semantic: danger */
-  --threat-soft:#F7E1DE;
-  --ok:#2E7D4F;
-  --bubble:#FFFFFF;
+  --bg:#F1F5F3; --surface:#FFFFFF; --sunk:#E4EBE8; --ink:#13201E; --mute:#5A6B66; --line:#D5DFDB;
+  --teal:#0B5D5A; --teal-2:#0E7A74; --teal-soft:#DCEEEA;
+  --deep:#0A2E2C; --deep-2:#0F3D3A; --on-deep:#EAF5F2; --on-deep-mute:#9CC3BB;
+  --marigold:#F2B33D; --marigold-soft:#FDF0D3;
+  --threat:#C2412F; --threat-soft:#FBE4DF; --ok:#2E7D4F;
   --on-teal:#FFFFFF;
   --display:'Bricolage Grotesque',ui-sans-serif,system-ui,sans-serif;
   --body:'Atkinson Hyperlegible',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
   --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
-  --r:14px;
+  --r:18px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0F1615;--surface:#16201F;--sunk:#1C2827;--ink:#E7EFEC;--mute:#97A8A3;--line:#2A3836;
-  --teal:#5FC4BA;--teal-soft:#16302E;--marigold:#F2B33D;--marigold-soft:#3A2F14;
-  --threat:#F08A80;--threat-soft:#3A1E1B;--ok:#6BCB8F;--bubble:#1F2B2A;--on-teal:#0F1615;color-scheme:dark}}
+  --bg:#0D1514;--surface:#15201F;--sunk:#1C2A28;--ink:#E8F0ED;--mute:#98AAA4;--line:#273634;
+  --teal:#5FC4BA;--teal-2:#7ED6CC;--teal-soft:#15302D;--deep:#071E1D;--deep-2:#0C2A28;--on-deep:#EAF5F2;--on-deep-mute:#8FB5AD;
+  --marigold-soft:#3A2F14;--threat:#F08A7C;--threat-soft:#3A1E1A;--ok:#6BCB8F;--on-teal:#0D1514;color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0F1615;--surface:#16201F;--sunk:#1C2827;--ink:#E7EFEC;--mute:#97A8A3;--line:#2A3836;
-  --teal:#5FC4BA;--teal-soft:#16302E;--marigold:#F2B33D;--marigold-soft:#3A2F14;
-  --threat:#F08A80;--threat-soft:#3A1E1B;--ok:#6BCB8F;--bubble:#1F2B2A;--on-teal:#0F1615;color-scheme:dark}
+  --bg:#0D1514;--surface:#15201F;--sunk:#1C2A28;--ink:#E8F0ED;--mute:#98AAA4;--line:#273634;
+  --teal:#5FC4BA;--teal-2:#7ED6CC;--teal-soft:#15302D;--deep:#071E1D;--deep-2:#0C2A28;--on-deep:#EAF5F2;--on-deep-mute:#8FB5AD;
+  --marigold-soft:#3A2F14;--threat:#F08A7C;--threat-soft:#3A1E1A;--ok:#6BCB8F;--on-teal:#0D1514;color-scheme:dark}
 
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*,*::before{transition:none!important;animation:none!important}}
 body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--body);-webkit-font-smoothing:antialiased}
 [hidden]{display:none!important}
 a{color:var(--teal)}
-:focus-visible{outline:3px solid var(--marigold);outline-offset:2px;border-radius:6px}
-h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.01em}
-h2{font-size:clamp(1.6rem,3.2vw,2.2rem);font-weight:800;line-height:1.1}
-h3{font-size:1.15rem;font-weight:700}
+:focus-visible{outline:3px solid var(--marigold);outline-offset:2px;border-radius:8px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.015em}
+h2{font-size:clamp(1.9rem,4vw,2.8rem);font-weight:800;line-height:1.05}
+h3{font-size:1.12rem;font-weight:700;line-height:1.25}
 p{margin:0}
-.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.narrow{max-width:820px}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
 .muted{color:var(--mute)}
 .small{font-size:.88rem}
-.eyebrow{font:600 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
-.num{font-variant-numeric:tabular-nums}
-.icon{width:1.1em;height:1.1em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.eyebrow{display:inline-flex;align-items:center;gap:.5rem;font:600 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+.eyebrow::before{content:"";width:18px;height:2px;background:currentColor}
+.icon{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
 /* header */
-header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--bg)}
-header.top .wrap{display:flex;align-items:center;gap:1rem;height:60px}
-.logo{display:flex;align-items:center;gap:.5rem;font:800 1.15rem var(--display);color:var(--ink);text-decoration:none}
-.logo .mark{width:28px;height:28px;border-radius:8px;background:var(--teal);color:var(--marigold);display:grid;place-items:center}
-.logo .mark .icon{width:17px;height:17px;stroke-width:2.4}
-nav.links{display:flex;gap:.2rem;margin-left:auto}
-nav.links a{color:var(--mute);text-decoration:none;font-size:.92rem;padding:.4rem .7rem;border-radius:99px}
-nav.links a:hover{color:var(--ink);background:var(--sunk)}
-.help-pill{display:inline-flex;align-items:center;gap:.4rem;background:var(--threat-soft);color:var(--threat);font:700 .9rem var(--body);padding:.4rem .8rem;border-radius:99px;white-space:nowrap}
-@media (max-width:760px){nav.links{display:none}.help-pill{margin-left:auto}}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--deep)}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--deep) 92%,transparent);backdrop-filter:blur(12px);color:var(--on-deep)}
+header.top .wrap{display:flex;align-items:center;gap:1rem;height:62px}
+.logo{display:flex;align-items:center;gap:.55rem;font:800 1.18rem var(--display);color:inherit;text-decoration:none}
+.logo .mark{width:30px;height:30px;border-radius:9px;background:var(--marigold);color:var(--deep);display:grid;place-items:center}
+.logo .mark .icon{width:18px;height:18px;stroke-width:2.4}
+nav.links{display:flex;gap:.15rem;margin-left:auto}
+nav.links a{color:var(--on-deep-mute);text-decoration:none;font-size:.92rem;padding:.45rem .8rem;border-radius:99px;transition:.15s}
+nav.links a:hover{color:var(--on-deep);background:rgba(255,255,255,.08)}
+.help-pill{display:inline-flex;align-items:center;gap:.4rem;background:var(--marigold);color:#2A1E05;font:700 .88rem var(--body);padding:.45rem .85rem;border-radius:99px;white-space:nowrap;text-decoration:none}
+@media (max-width:820px){nav.links{display:none}.help-pill{margin-left:auto}}
 
 /* buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;font:700 .98rem var(--body);padding:.75rem 1.2rem;border-radius:12px;border:1.5px solid transparent;cursor:pointer;text-decoration:none;transition:transform .12s ease,background .15s}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;font:700 1rem var(--body);padding:.85rem 1.35rem;border-radius:14px;border:1.5px solid transparent;cursor:pointer;text-decoration:none;transition:transform .15s ease,box-shadow .15s,background .15s}
+.btn:hover{transform:translateY(-1px)}
 .btn:active{transform:translateY(1px)}
-.btn.primary{background:var(--teal);color:var(--on-teal)}
-.btn.primary:hover{filter:brightness(1.08)}
-.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.primary{background:var(--teal);color:var(--on-teal);box-shadow:0 10px 24px -12px var(--teal)}
+.btn.gold{background:var(--marigold);color:#2A1E05;box-shadow:0 10px 24px -12px rgba(242,179,61,.9)}
+.btn.line{background:transparent;color:var(--on-deep);border-color:rgba(255,255,255,.25)}
+.btn.line:hover{background:rgba(255,255,255,.08)}
+.btn.ghost{background:var(--surface);color:var(--ink);border-color:var(--line)}
 .btn.ghost:hover{background:var(--sunk)}
-.btn.sm{padding:.45rem .8rem;font-size:.88rem;border-radius:10px}
-.btn:disabled{opacity:.5;cursor:default}
+.btn.sm{padding:.5rem .85rem;font-size:.86rem;border-radius:10px;box-shadow:none}
+.btn:disabled{opacity:.5;cursor:default;transform:none}
 .link-btn{background:none;border:0;padding:0;color:var(--teal);font:700 .92rem var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 
-/* hero + tool */
-.hero{padding-block:clamp(2.5rem,6vw,4.5rem) 1.5rem}
-.hero h1{font-size:clamp(2.3rem,6vw,4rem);font-weight:800;line-height:1.02;max-width:14ch}
-.hero h1 em{font-style:normal;color:var(--teal);background:linear-gradient(transparent 62%,var(--marigold-soft) 62%)}
-.hero .lede{font-size:1.15rem;color:var(--mute);max-width:56ch;margin-top:1rem}
-.composer{margin-top:2rem;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:1rem;box-shadow:0 1px 0 var(--line),0 18px 40px -28px rgba(11,93,90,.35)}
-.composer label{display:block;font-weight:700;margin:0 0 .5rem .2rem}
-.composer textarea{width:100%;min-height:96px;resize:vertical;border:0;background:var(--sunk);color:var(--ink);border-radius:12px;padding:.9rem 1rem;font:1.02rem/1.5 var(--body)}
-.composer textarea:focus{outline:2px solid var(--teal);outline-offset:0}
-.composer .row{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:.8rem}
-.composer .row .grow{flex:1;min-width:12rem}
-.examples{display:flex;flex-wrap:wrap;gap:.4rem}
-.examples button{font:.82rem var(--body);background:transparent;border:1px dashed var(--line);color:var(--mute);border-radius:99px;padding:.3rem .7rem;cursor:pointer}
-.examples button:hover{border-color:var(--teal);color:var(--teal)}
-.privacy{display:flex;gap:.45rem;align-items:center;color:var(--mute);font-size:.84rem;margin:.8rem .2rem 0}
+/* HERO */
+.hero{background:radial-gradient(1200px 500px at 85% 10%,var(--deep-2),transparent 60%),var(--deep);color:var(--on-deep);overflow:hidden;position:relative}
+.hero::after{content:"";position:absolute;inset:auto -10% -1px;height:80px;background:var(--bg);clip-path:ellipse(60% 100% at 50% 100%)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:3rem;align-items:center;padding-block:clamp(3rem,7vw,5.5rem) clamp(5rem,9vw,7rem);position:relative;z-index:1}
+.hero .eyebrow{color:var(--marigold)}
+.hero h1{font-size:clamp(2.6rem,6.4vw,4.6rem);font-weight:800;line-height:.98;margin-top:1rem}
+.hero h1 .flipword{display:inline-block;color:var(--marigold)}
+.hero .lede{font-size:1.15rem;color:var(--on-deep-mute);max-width:44ch;margin-top:1.2rem}
+.hero .ctas{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.8rem}
+.trust{display:flex;flex-wrap:wrap;gap:.5rem 1.2rem;margin-top:1.8rem;color:var(--on-deep-mute);font-size:.86rem}
+.trust span{display:inline-flex;align-items:center;gap:.4rem}
+.trust .icon{color:var(--marigold)}
+@media (max-width:860px){.hero .wrap{grid-template-columns:1fr}.phone{margin-inline:auto}}
 
-/* result */
-.result{margin-top:1.5rem;display:grid;gap:1.25rem}
-.verdict{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1rem}
-.pill{display:inline-flex;align-items:center;gap:.35rem;font:700 .82rem var(--body);padding:.3rem .75rem;border-radius:99px;background:var(--sunk);color:var(--ink)}
-.pill.critical,.pill.high{background:var(--threat-soft);color:var(--threat)}
-.pill.watch{background:var(--marigold-soft);color:var(--ink)}
-.pill.clear{background:var(--teal-soft);color:var(--teal)}
-.flip-list{list-style:none;margin:0;padding:0;display:grid;gap:.75rem}
-.flip{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1.25fr);gap:.9rem;align-items:center}
-.said{background:var(--bubble);border:1px solid var(--line);border-radius:16px 16px 16px 4px;padding:.75rem .95rem;min-width:0}
-.said .who{font:600 .7rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--threat);display:block;margin-bottom:.25rem}
-.said q{quotes:none;font-size:.98rem;color:var(--mute)}
-.said q mark{color:var(--ink);text-decoration:line-through;text-decoration-color:var(--threat);text-decoration-thickness:2px}
-.arrow{color:var(--mute);font:700 1.2rem var(--display)}
-.fact{background:var(--teal-soft);border-radius:16px;padding:.85rem 1rem;min-width:0}
-.fact b{display:block;font-family:var(--display);font-size:1.02rem;color:var(--teal);margin-bottom:.15rem}
-.fact p{font-size:.95rem}
-.laws{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem}
-.law{font:600 .72rem var(--mono);background:var(--surface);color:var(--ink);border:1px solid var(--line);padding:.15rem .45rem;border-radius:6px}
-mark{background:var(--marigold-soft);color:inherit;border-bottom:2px solid var(--marigold);padding:0 .1em;border-radius:3px}
-@media (max-width:640px){.flip{grid-template-columns:1fr}.arrow{transform:rotate(90deg);justify-self:start;margin-left:1rem}}
-.none{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:1rem}
+/* phone mockup */
+.phone{width:min(330px,100%);background:#0B1716;border-radius:42px;padding:12px;box-shadow:0 40px 80px -30px rgba(0,0,0,.7),inset 0 0 0 2px rgba(255,255,255,.08);transform:rotate(2deg)}
+.screen{background:#E9E2D6;border-radius:32px;overflow:hidden;color:#13201E}
+.chat-top{background:#0B5D5A;color:#fff;display:flex;align-items:center;gap:.6rem;padding:1.1rem .9rem .7rem}
+.chat-top .av{width:32px;height:32px;border-radius:50%;background:#C2412F;display:grid;place-items:center;font:700 .8rem var(--body)}
+.chat-top b{display:block;font-size:.9rem}.chat-top small{font-size:.72rem;opacity:.8}
+.chat{padding:.9rem .7rem 1.1rem;display:grid;gap:.6rem;min-height:400px;background-image:radial-gradient(rgba(0,0,0,.05) 1px,transparent 1px);background-size:14px 14px}
+.chat .stamp{justify-self:center;font-size:.68rem;background:#fff;padding:.15rem .5rem;border-radius:6px;color:#5A6B66}
+.chat-foot{display:flex;align-items:center;gap:.5rem;background:#fff;margin:0 .6rem .7rem;border-radius:99px;padding:.45rem .8rem;font-size:.75rem;color:#5A6B66}
+.chat-foot .sh{margin-left:auto;background:#F2B33D;color:#2A1E05;font-weight:700;border-radius:99px;padding:.2rem .6rem}
 
-.case{background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden}
-.case-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem 1.2rem;border-bottom:1px solid var(--line)}
-.case-steps{list-style:none;margin:0;padding:0}
-.case-steps li{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:.9rem;align-items:center;padding:.9rem 1.2rem;border-top:1px solid var(--line)}
-.case-steps li:first-child{border-top:0}
-.dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--sunk);color:var(--mute)}
-.dot.on{background:var(--teal);color:var(--on-teal)}
-.case-steps .t{font-weight:700}
-.case-steps .d{font-size:.88rem;color:var(--mute);overflow-wrap:anywhere}
-.case-steps .d code{font-family:var(--mono);font-size:.8rem}
-@media (max-width:560px){.case-steps li{grid-template-columns:34px minmax(0,1fr)}.case-steps li>.act{grid-column:2}}
-.consent{display:flex;gap:.5rem;align-items:flex-start;font-size:.85rem;color:var(--mute);margin-top:.4rem}
-.support{display:flex;flex-wrap:wrap;gap:.6rem 1.4rem;align-items:center;background:var(--threat-soft);border-radius:var(--r);padding:.9rem 1.1rem}
-.support b.n{font:800 1.25rem var(--display);color:var(--threat)}
-.ai{font-size:.9rem}
+/* flip cards (shared by phone and results) */
+.fcard{perspective:1200px;cursor:pointer;background:none;border:0;padding:0;text-align:left;font:inherit;color:inherit;width:100%}
+.fcard .inner{display:grid;transition:transform .7s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.fcard.flipped .inner{transform:rotateY(180deg)}
+.face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:16px;padding:.9rem 1rem;min-width:0}
+.face.back{transform:rotateY(180deg)}
+.chat .face{padding:.6rem .75rem;border-radius:12px 12px 12px 3px;font-size:.84rem;line-height:1.35}
+.chat .face.front{background:#fff;box-shadow:0 1px 1px rgba(0,0,0,.12)}
+.chat .face.back{background:#0B5D5A;color:#fff}
+.chat .face .tag{display:block;font:700 .62rem var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.15rem}
+.chat .face.front .tag{color:#C2412F}.chat .face.back .tag{color:#F2B33D}
+
+/* STATS */
+.stats-band{margin-top:-2.5rem;position:relative;z-index:2}
+.stat-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--surface);border-radius:22px;box-shadow:0 20px 50px -30px rgba(10,46,44,.45);border:1px solid var(--line)}
+.stat{padding:1.4rem 1.6rem;display:flex;gap:1rem;align-items:center}
+.stat+.stat{border-left:1px solid var(--line)}
+.stat b{font:800 clamp(1.9rem,4vw,2.6rem)/1 var(--display);color:var(--teal);font-variant-numeric:tabular-nums}
+.stat span{font-size:.88rem;color:var(--mute);line-height:1.3}
+@media (max-width:720px){.stat-row{grid-template-columns:1fr}.stat+.stat{border-left:0;border-top:1px solid var(--line)}}
 
 /* sections */
-section.band{padding-block:clamp(3rem,7vw,5rem)}
-section.band.alt{background:var(--surface);border-block:1px solid var(--line)}
-.sec-head{display:grid;gap:.6rem;margin-bottom:2rem;max-width:62ch}
+section.band{padding-block:clamp(3.5rem,8vw,6rem)}
+section.dark{background:var(--deep);color:var(--on-deep)}
+section.dark .muted{color:var(--on-deep-mute)}
+section.dark .eyebrow{color:var(--marigold)}
+.sec-head{display:grid;gap:.8rem;margin-bottom:2.2rem;max-width:60ch}
+.sec-head.center{margin-inline:auto;text-align:center;justify-items:center}
 
-/* borrow */
-.borrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.5rem;align-items:start}
-@media (max-width:760px){.borrow{grid-template-columns:1fr}}
-.fields{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
-.field label{display:block;font-size:.86rem;font-weight:700;margin-bottom:.3rem}
-.field input{width:100%;font:1.05rem var(--body);padding:.65rem .8rem;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
-.field input:focus{outline:2px solid var(--teal);border-color:transparent}
-details.flags-q{margin-top:1rem;border-top:1px solid var(--line);padding-top:.8rem}
+/* TOOL */
+.tool{max-width:900px;margin:0 auto}
+.composer{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:1.1rem;box-shadow:0 24px 60px -36px rgba(10,46,44,.5)}
+.composer textarea{width:100%;min-height:110px;resize:vertical;border:0;background:var(--sunk);color:var(--ink);border-radius:14px;padding:1rem 1.1rem;font:1.04rem/1.5 var(--body)}
+.composer textarea:focus{outline:2px solid var(--teal)}
+.composer .row{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center;margin-top:.9rem}
+.examples{display:flex;flex-wrap:wrap;gap:.45rem;flex:1;min-width:14rem}
+.examples button{display:inline-flex;align-items:center;gap:.35rem;font:600 .84rem var(--body);background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:99px;padding:.4rem .8rem;cursor:pointer;transition:.15s}
+.examples button:hover{border-color:var(--teal);color:var(--teal)}
+.examples .icon{color:var(--threat)}
+.privacy{display:flex;gap:.45rem;align-items:center;justify-content:center;color:var(--mute);font-size:.84rem;margin-top:.9rem}
+
+.result{margin-top:2rem;display:grid;gap:1.6rem}
+.verdict{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.8rem}
+.meter{display:flex;align-items:center;gap:.8rem;flex:1;min-width:14rem}
+.meter .track{flex:1;height:10px;border-radius:99px;background:linear-gradient(90deg,var(--teal-soft),var(--marigold-soft),var(--threat-soft));overflow:hidden;position:relative}
+.meter .track i{position:absolute;top:-3px;width:16px;height:16px;border-radius:50%;background:var(--threat);border:3px solid var(--surface);box-shadow:0 0 0 1px var(--line);transform:translateX(-50%)}
+.pill{display:inline-flex;align-items:center;gap:.35rem;font:700 .84rem var(--body);padding:.35rem .8rem;border-radius:99px;background:var(--sunk);color:var(--ink);white-space:nowrap}
+.pill.critical,.pill.high{background:var(--threat);color:#fff}
+.pill.watch{background:var(--marigold);color:#2A1E05}
+.pill.clear{background:var(--teal-soft);color:var(--teal)}
+.hint{font-size:.84rem;color:var(--mute);display:flex;align-items:center;gap:.4rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
+.cards .face{padding:1.1rem 1.15rem 1.2rem;display:flex;flex-direction:column;gap:.55rem}
+.cards .front{background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 24px -18px rgba(0,0,0,.4)}
+.cards .back{background:var(--teal);color:var(--on-teal)}
+.cards .kind{display:flex;align-items:center;gap:.5rem;font:700 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.cards .front .kind{color:var(--threat)}
+.cards .back .kind{color:var(--marigold)}
+.cards .kind .ic{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:var(--threat-soft)}
+.cards .back .kind .ic{background:rgba(255,255,255,.15)}
+.cards q{quotes:none;font:500 1.12rem/1.45 var(--body);color:var(--mute);flex:1;display:flex;align-items:center}
+.cards q mark{background:none;color:var(--ink);font-weight:700;text-decoration:line-through;text-decoration-color:var(--threat);text-decoration-thickness:2.5px}
+.cards .back b{font:700 1.08rem/1.25 var(--display)}
+.cards .back p{font-size:.88rem;opacity:.92}
+.cards .turn{margin-top:auto;font-size:.76rem;color:var(--mute);display:flex;align-items:center;gap:.3rem}
+.cards .back .turn{color:inherit;opacity:.75}
+.laws{display:flex;flex-wrap:wrap;gap:.3rem}
+.law{font:600 .7rem var(--mono);background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);padding:.15rem .45rem;border-radius:6px}
+.none{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:1.2rem}
+
+.support{display:flex;flex-wrap:wrap;gap:.8rem 1.6rem;align-items:center;background:var(--threat-soft);border-radius:var(--r);padding:1rem 1.3rem}
+.support .n{display:flex;align-items:baseline;gap:.4rem}
+.support .n b{font:800 1.4rem var(--display);color:var(--threat)}
+
+/* case tracker */
+.case{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:1.4rem 1.4rem 1.2rem}
+.case-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1.3rem}
+.case-head .score{font:800 1.1rem var(--display);color:var(--teal)}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:relative}
+.steps::before{content:"";position:absolute;top:23px;left:10%;right:10%;height:3px;background:var(--sunk);border-radius:3px}
+.steps .fill{position:absolute;top:23px;left:10%;height:3px;background:var(--teal);border-radius:3px;transition:width .6s ease}
+.steps li{display:flex;flex-direction:column;align-items:center;text-align:center;gap:.45rem;position:relative;padding:0 .3rem}
+.node{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:3px solid var(--sunk);color:var(--mute);position:relative;z-index:1;transition:.3s}
+.node .icon{width:20px;height:20px}
+.steps li.on .node{background:var(--teal);border-color:var(--teal);color:var(--on-teal);box-shadow:0 0 0 6px var(--teal-soft)}
+.steps .t{font-weight:700;font-size:.92rem;line-height:1.2}
+.steps .d{font-size:.78rem;color:var(--mute);overflow-wrap:anywhere;line-height:1.35}
+.steps .act{margin-top:.2rem}
+@media (max-width:760px){
+  .steps{grid-template-columns:1fr;gap:1rem}
+  .steps::before,.steps .fill{display:none}
+  .steps li{flex-direction:row;text-align:left;align-items:center;flex-wrap:wrap}
+  .steps li>div{flex:1;min-width:10rem}
+}
+.consent{font-size:.8rem;color:var(--mute);margin-top:1rem;text-align:center}
+.ai{text-align:center;font-size:.9rem}
+
+/* BORROW */
+.borrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2rem;align-items:center}
+@media (max-width:820px){.borrow{grid-template-columns:1fr}}
+.sliders{display:grid;gap:1.3rem;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:1.6rem}
+.sl label{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:.92rem;margin-bottom:.45rem}
+.sl label output{font:800 1.25rem var(--display);color:var(--teal);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--teal);height:28px}
+details.flags-q{border-top:1px solid var(--line);padding-top:1rem}
 details.flags-q summary{cursor:pointer;font-weight:700;font-size:.92rem}
-.check{display:flex;gap:.55rem;align-items:flex-start;font-size:.9rem;margin-top:.55rem}
+.check{display:flex;gap:.55rem;align-items:flex-start;font-size:.9rem;margin-top:.6rem}
 .check input{margin-top:.25rem;accent-color:var(--teal)}
-.apr-card{background:var(--bg);border-radius:20px;padding:1.4rem}
-.apr{font:800 clamp(3rem,8vw,4.6rem)/1 var(--display);letter-spacing:-.03em}
-.apr.danger{color:var(--threat)}.apr.caution{color:var(--ink)}.apr.ok{color:var(--ok)}
-.apr-sub{color:var(--mute);margin-top:.3rem}
-.compare{display:grid;gap:.5rem;margin-top:1.2rem}
-.bar{display:grid;grid-template-columns:8.5rem minmax(0,1fr) 4.5rem;gap:.6rem;align-items:center;font-size:.85rem}
-.bar .track{height:10px;background:var(--sunk);border-radius:99px;overflow:hidden}
-.bar .track i{display:block;height:100%;border-radius:99px;background:var(--teal)}
-.bar.them .track i{background:var(--threat)}
-.bar .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
-.flag-list{list-style:none;padding:0;margin:1rem 0 0;display:grid;gap:.45rem;font-size:.9rem}
-.flag-list li{display:flex;gap:.5rem}
-.flag-list li::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--threat);margin-top:.5em}
+.tag-card{position:relative;background:var(--deep);color:var(--on-deep);border-radius:28px;padding:2rem 1.8rem 1.6rem;overflow:hidden}
+.tag-card::before{content:"";position:absolute;top:22px;right:24px;width:18px;height:18px;border-radius:50%;background:var(--bg);box-shadow:inset 0 0 0 4px rgba(0,0,0,.15)}
+.tag-card .eyebrow{color:var(--marigold)}
+.apr{font:800 clamp(3.4rem,10vw,5.6rem)/1 var(--display);letter-spacing:-.04em;margin-top:.6rem;font-variant-numeric:tabular-nums}
+.apr.danger{color:#FF9C8C}.apr.caution{color:var(--marigold)}.apr.ok{color:#8FE0B0}
+.apr-sub{color:var(--on-deep-mute);margin-top:.4rem}
+.compare{display:grid;gap:.6rem;margin-top:1.5rem}
+.bar{display:grid;grid-template-columns:7.5rem minmax(0,1fr) 4.2rem;gap:.7rem;align-items:center;font-size:.85rem;color:var(--on-deep-mute)}
+.bar .track{height:12px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.bar .track i{display:block;height:100%;border-radius:99px;background:#8FE0B0;transition:width .4s ease}
+.bar.them{color:var(--on-deep)}
+.bar.them .track i{background:#FF9C8C}
+.bar .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:var(--on-deep)}
+.flag-list{list-style:none;padding:0;margin:1.3rem 0 0;display:grid;gap:.45rem;font-size:.88rem;color:var(--on-deep-mute)}
+.flag-list li{display:flex;gap:.55rem}
+.flag-list li::before{content:"!";flex:none;width:18px;height:18px;border-radius:50%;background:var(--marigold);color:#2A1E05;font:800 .7rem/18px var(--body);text-align:center;margin-top:.15em}
+.safer{margin-top:1.3rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.12);font-size:.88rem;color:var(--on-deep-mute)}
 
-/* pipeline */
-.pipe{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;counter-reset:s;position:relative}
-.pipe>li{padding:1.2rem 1rem 1.2rem 0;border-top:3px solid var(--line);position:relative;min-width:0}
-.pipe>li.app{border-top-color:var(--teal)}
-.pipe>li::before{counter-increment:s;content:counter(s);position:absolute;top:-15px;left:0;width:26px;height:26px;border-radius:50%;background:var(--surface);border:3px solid var(--line);font:700 .75rem/20px var(--mono);text-align:center;color:var(--mute)}
-.pipe>li.app::before{border-color:var(--teal);color:var(--teal)}
-.pipe h3{margin-top:.6rem}
-.pipe .who{font:600 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-top:.25rem}
-.pipe p{font-size:.9rem;margin-top:.5rem}
-.pipe ul{margin:.5rem 0 0;padding-left:1rem;font-size:.86rem;color:var(--mute)}
-.pipe .tag{display:inline-block;margin-top:.7rem;font:700 .72rem var(--body);color:var(--teal);background:var(--teal-soft);padding:.15rem .5rem;border-radius:6px}
-.loop{margin-top:1rem;color:var(--mute);font-size:.9rem;display:flex;gap:.5rem;align-items:center}
-@media (max-width:860px){.pipe{grid-template-columns:1fr 1fr}}
-@media (max-width:520px){.pipe{grid-template-columns:1fr}}
-.legend{display:flex;gap:1.2rem;flex-wrap:wrap;font-size:.85rem;color:var(--mute);margin-top:1.2rem}
-.legend span{display:inline-flex;gap:.4rem;align-items:center}
-.legend i{width:18px;height:3px;background:var(--line);display:inline-block}
-.legend i.app{background:var(--teal)}
-.diff{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem 2rem;margin-top:3rem;padding-top:2rem;border-top:1px solid var(--line)}
-.diff h3{font-size:1rem}
-.diff p{font-size:.9rem;color:var(--mute);margin-top:.3rem}
-@media (max-width:760px){.diff{grid-template-columns:1fr}}
+/* PIPELINE loop */
+.system{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:3rem;align-items:center}
+@media (max-width:860px){.system{grid-template-columns:1fr}}
+.loop{position:relative;width:min(440px,100%);aspect-ratio:1;margin-inline:auto}
+.loop svg.ring{position:absolute;inset:0;width:100%;height:100%}
+.hub{position:absolute;inset:32%;border-radius:50%;background:var(--deep-2);display:grid;place-items:center;text-align:center;padding:.8rem;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.hub b{font:800 1.05rem/1.1 var(--display)}
+.hub span{font-size:.74rem;color:var(--on-deep-mute);display:block;margin-top:.25rem}
+.stage{position:absolute;width:23%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:0;cursor:pointer;display:grid;place-items:center;align-content:center;gap:.15rem;font:700 .82rem var(--body);transition:transform .2s,box-shadow .2s;color:var(--on-deep);background:var(--deep-2);box-shadow:inset 0 0 0 2px rgba(255,255,255,.14)}
+.stage .icon{width:24px;height:24px}
+.stage.app{background:var(--teal-2);color:#04211F;box-shadow:none}
+.stage:hover{transform:translate(-50%,-50%) scale(1.06)}
+.stage[aria-pressed="true"]{box-shadow:0 0 0 4px var(--marigold)}
+.stage-panel{background:var(--deep-2);border-radius:24px;padding:1.8rem;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.stage-panel .who{display:inline-flex;gap:.4rem;align-items:center;font:700 .76rem var(--body);padding:.3rem .7rem;border-radius:99px;margin-top:.8rem}
+.stage-panel .who.app{background:var(--teal-2);color:#04211F}
+.stage-panel .who.ppl{background:rgba(255,255,255,.1);color:var(--on-deep)}
+.stage-panel h3{font-size:1.8rem;font-weight:800}
+.stage-panel p.big{font-size:1.1rem;margin-top:.8rem}
+.stage-panel ul{list-style:none;padding:0;margin:1.2rem 0 0;display:grid;gap:.6rem}
+.stage-panel li{display:flex;gap:.6rem;align-items:flex-start;color:var(--on-deep-mute)}
+.stage-panel li .icon{color:var(--marigold);margin-top:.2em}
+.legend{display:flex;gap:1.2rem;flex-wrap:wrap;font-size:.85rem;color:var(--on-deep-mute);margin-top:1.4rem;justify-content:center}
+.legend span{display:inline-flex;gap:.45rem;align-items:center}
+.legend i{width:14px;height:14px;border-radius:50%;background:var(--deep-2);box-shadow:inset 0 0 0 2px rgba(255,255,255,.2);display:inline-block}
+.legend i.app{background:var(--teal-2);box-shadow:none}
+
+/* why different */
+.diff{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.2rem}
+.diff article{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:1.5rem;display:grid;gap:.7rem;align-content:start}
+.diff .ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:var(--teal-soft);color:var(--teal)}
+.diff .ic .icon{width:24px;height:24px}
+.diff .vs{font-size:.82rem;color:var(--mute);border-top:1px dashed var(--line);padding-top:.7rem}
+.diff .vs b{color:var(--ink)}
+@media (max-width:820px){.diff{grid-template-columns:1fr}}
 
 /* operator map */
-.map-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1rem}
-.seg{display:inline-flex;background:var(--sunk);border-radius:10px;padding:3px}
-.seg button{border:0;background:transparent;color:var(--mute);font:700 .85rem var(--body);padding:.4rem .9rem;border-radius:8px;cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
-.stats{display:flex;flex-wrap:wrap;gap:2rem;margin-bottom:1.4rem}
-.stats div b{display:block;font:800 1.8rem var(--display);font-variant-numeric:tabular-nums}
-.stats div span{font-size:.82rem;color:var(--mute)}
-.ops{display:grid;gap:1rem;min-width:0}
+.map-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1.2rem}
+.seg{display:inline-flex;background:var(--sunk);border-radius:12px;padding:4px}
+.seg button{border:0;background:transparent;color:var(--mute);font:700 .86rem var(--body);padding:.45rem 1rem;border-radius:9px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.seg button:disabled{opacity:.45;cursor:default}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem;margin-bottom:1.4rem}
+.stats div{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:1rem 1.1rem}
+.stats div b{display:block;font:800 1.9rem/1 var(--display);font-variant-numeric:tabular-nums;color:var(--teal)}
+.stats div span{font-size:.8rem;color:var(--mute)}
+@media (max-width:640px){.stats{grid-template-columns:1fr 1fr}}
+.ops{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr));gap:1rem;min-width:0}
 .ops>*{min-width:0}
-.op{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:1rem 1.1rem}
-.op.you{border-color:var(--teal)}
+.op{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:1.1rem 1.2rem}
+.op.you{border-color:var(--marigold);box-shadow:0 0 0 3px var(--marigold-soft)}
 .op-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem;align-items:center}
-.op-meta{font-size:.85rem;color:var(--mute);margin-top:.2rem}
-.graph-wrap{overflow-x:auto;margin-top:.6rem}
-.graph-wrap svg{display:block;min-width:520px;width:100%;height:auto}
-.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:.4rem;vertical-align:middle}
+.op-meta{font-size:.84rem;color:var(--mute);margin-top:.2rem}
+.graph-wrap{overflow-x:auto;margin-top:.7rem}
+.graph-wrap svg{display:block;min-width:440px;width:100%;height:auto}
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:.4rem;vertical-align:middle;animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.3}}
 
-/* footer */
-footer{padding-block:3rem;border-top:1px solid var(--line)}
-footer .grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:2rem}
-footer h3{font-size:.95rem;margin-bottom:.6rem}
-footer ul{list-style:none;padding:0;margin:0;display:grid;gap:.4rem;font-size:.92rem}
-footer .nums b{font:800 1.1rem var(--display)}
-@media (max-width:760px){footer .grid{grid-template-columns:1fr}}
+/* help band */
+.help{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:2rem}
+.help div{background:rgba(255,255,255,.06);border-radius:20px;padding:1.4rem;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.help b{display:block;font:800 2.6rem/1 var(--display);color:var(--marigold)}
+.help span{color:var(--on-deep-mute);font-size:.9rem}
+@media (max-width:640px){.help{grid-template-columns:1fr}}
+
+footer{padding-block:2.5rem;background:var(--deep);color:var(--on-deep-mute);border-top:1px solid rgba(255,255,255,.08);font-size:.88rem}
+footer .wrap{display:flex;flex-wrap:wrap;gap:1rem 2rem;justify-content:space-between;align-items:center}
+footer .logo{color:var(--on-deep)}
+footer .links2{display:flex;flex-wrap:wrap;gap:1.2rem}
+footer .link-btn{color:var(--marigold)}
 
 /* dialogs */
-dialog{border:0;border-radius:20px;padding:0;width:min(640px,calc(100vw - 24px));max-height:calc(100dvh - 48px);background:var(--surface);color:var(--ink);box-shadow:0 30px 80px -20px rgba(0,0,0,.45)}
-dialog::backdrop{background:rgba(10,20,19,.45);backdrop-filter:blur(3px)}
-.dlg-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.1rem 1.3rem;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface)}
-.dlg-body{padding:1.2rem 1.3rem;display:grid;gap:1rem}
-.x{background:var(--sunk);border:0;border-radius:50%;width:32px;height:32px;display:grid;place-items:center;color:var(--ink);cursor:pointer}
-textarea.out{width:100%;min-height:200px;font:.85rem/1.5 var(--mono);border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:.8rem}
+dialog{border:0;border-radius:24px;padding:0;width:min(640px,calc(100vw - 24px));max-height:calc(100dvh - 48px);background:var(--surface);color:var(--ink);box-shadow:0 30px 80px -20px rgba(0,0,0,.5)}
+dialog[open]{animation:pop .25s ease}
+@keyframes pop{from{opacity:0;transform:translateY(12px) scale(.98)}}
+dialog::backdrop{background:rgba(7,30,29,.55);backdrop-filter:blur(4px)}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem 1.4rem;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:1}
+.dlg-head h3{display:flex;align-items:center;gap:.6rem;font-size:1.25rem}
+.dlg-head h3 .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--teal-soft);color:var(--teal)}
+.dlg-body{padding:1.3rem 1.4rem;display:grid;gap:1rem}
+.x{background:var(--sunk);border:0;border-radius:50%;width:34px;height:34px;display:grid;place-items:center;color:var(--ink);cursor:pointer}
+.field label{display:block;font-size:.86rem;font-weight:700;margin-bottom:.3rem}
+.field input{width:100%;font:1rem var(--body);padding:.65rem .8rem;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.field input:focus{outline:2px solid var(--teal);border-color:transparent}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+@media (max-width:480px){.fields{grid-template-columns:1fr}}
+textarea.out{width:100%;min-height:200px;font:.84rem/1.5 var(--mono);border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:.8rem}
 .radios{display:flex;gap:.4rem;flex-wrap:wrap}
-.radios label{cursor:pointer}
+.radios label{cursor:pointer;position:relative}
 .radios input{position:absolute;opacity:0}
-.radios span{display:inline-block;padding:.4rem .9rem;border-radius:99px;border:1px solid var(--line);font-size:.9rem}
+.radios span{display:inline-block;padding:.45rem 1rem;border-radius:99px;border:1px solid var(--line);font-size:.92rem}
 .radios input:checked+span{background:var(--teal);color:var(--on-teal);border-color:var(--teal)}
 .radios input:focus-visible+span{outline:3px solid var(--marigold)}
+.bubble-out{background:#E9E2D6;border-radius:16px;padding:1rem}
+.bubble-out textarea{width:100%;min-height:140px;border:0;border-radius:12px 12px 3px 12px;background:#D9FDD3;color:#13201E;padding:.8rem .9rem;font:.95rem/1.45 var(--body);resize:vertical}
 .btns{display:flex;flex-wrap:wrap;gap:.5rem}
-.vault{list-style:none;padding:0;margin:0;display:grid;gap:.6rem}
-.vault li{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:.7rem .85rem;font-size:.9rem}
+.vault{list-style:none;padding:0;margin:0;display:grid;gap:.6rem;position:relative}
+.vault li{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:.75rem .9rem;font-size:.9rem;position:relative}
+.vault li+li::before{content:"";position:absolute;left:22px;top:-11px;width:2px;height:10px;background:var(--teal)}
 .vault li.bad{border-color:var(--threat);background:var(--threat-soft)}
-.vault .meta{display:flex;gap:.8rem;flex-wrap:wrap;font-size:.78rem;color:var(--mute)}
-.vault .hash{font:.72rem var(--mono);color:var(--mute);overflow-wrap:anywhere;margin-top:.3rem}
-.status{display:flex;gap:.5rem;align-items:center;font-size:.9rem;font-weight:700}
-.status.ok{color:var(--ok)}.status.bad{color:var(--threat)}
+.vault .meta{display:flex;gap:.8rem;flex-wrap:wrap;font-size:.76rem;color:var(--mute)}
+.vault .hash{font:.7rem var(--mono);color:var(--mute);overflow-wrap:anywhere;margin-top:.3rem}
+.status{display:flex;gap:.5rem;align-items:center;font-size:.92rem;font-weight:700;padding:.6rem .8rem;border-radius:12px}
+.status.ok{color:var(--ok);background:var(--teal-soft)}.status.bad{color:var(--threat);background:var(--threat-soft)}
 .confirm{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;background:var(--threat-soft);padding:.6rem .8rem;border-radius:10px;font-size:.9rem}
 
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:.7rem 1.1rem;border-radius:12px;font-size:.92rem;opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:calc(100vw - 32px)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--deep);color:var(--on-deep);padding:.75rem 1.15rem;border-radius:14px;font-size:.92rem;opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:calc(100vw - 32px);box-shadow:0 12px 30px -10px rgba(0,0,0,.5)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+@keyframes rise{from{opacity:.001;transform:translateY(14px)}}
+.rise{animation:rise .5s ease both}
 </style>
 </head>
 <body>
@@ -256,155 +351,217 @@ textarea.out{width:100%;min-height:200px;font:.85rem/1.5 var(--mono);border-radi
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/></symbol>
-  <symbol id="i-loop" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.7"/><path d="M4 17l5-4.5 4 3 3-2.5 4.5 4"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H10l-4 3.5V16H4z"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17h0"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-rupee" viewBox="0 0 24 24"><path d="M7 4h11M7 8.5h11M7 4h3.5a4.5 4.5 0 0 1 0 9H7l8 7"/></symbol>
+  <symbol id="i-flip" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/></symbol>
+  <symbol id="i-calc" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8 7h8M8.5 12h1M12 12h0M15 12h.5M8.5 16h1M12 16h0M15 16h.5"/></symbol>
+  <symbol id="i-hands" viewBox="0 0 24 24"><path d="M12 20s-7-4.3-7-9.5A3.8 3.8 0 0 1 12 8.3a3.8 3.8 0 0 1 7 2.2C19 15.7 12 20 12 20z"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7.5 14.5l3.5-4 3 2.5 4-6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.5 3.5 5.5 3.5 8.5s-1 6-3.5 8.5c-2.5-2.5-3.5-5.5-3.5-8.5s1-6 3.5-8.5z"/></symbol>
 </svg>
 
 <header class="top"><div class="wrap">
-  <a class="logo" href="#flip"><span class="mark"><svg class="icon"><use href="#i-shield"/></svg></span>LoanShield</a>
+  <a class="logo" href="#top"><span class="mark"><svg class="icon"><use href="#i-shield"/></svg></span>LoanShield</a>
   <nav class="links" aria-label="Sections">
-    <a href="#flip">Flip a threat</a><a href="#borrow">Before you borrow</a><a href="#pipeline">How it works</a><a href="#map">Operator map</a>
+    <a href="#flip">Flip a threat</a><a href="#borrow">Check a loan</a><a href="#system">How it works</a><a href="#map">Operator map</a>
   </nav>
-  <span class="help-pill"><svg class="icon"><use href="#i-phone"/></svg>Help: 1930</span>
+  <a class="help-pill" href="#help"><svg class="icon"><use href="#i-phone"/></svg>Get help</a>
 </div></header>
 
 <main>
-<section class="hero" id="flip"><div class="wrap narrow">
-  <p class="eyebrow">For anyone threatened by a loan app</p>
-  <h1 style="margin-top:.8rem">Their threats are <em>your evidence.</em></h1>
-  <p class="lede">Paste a message from a loan recovery agent. LoanShield shows what is actually true, names the law the message breaks, and adds it to your case against them.</p>
-
-  <form class="composer" id="flip-form">
-    <label for="msg">What did they send you?</label>
-    <textarea id="msg" placeholder="Paste a WhatsApp message, SMS, or write what was said on a call"></textarea>
-    <div class="row">
-      <div class="grow examples" aria-label="Examples"><span class="small muted" style="align-self:center">Try:</span>
-        <button type="button" data-ex="0">Morphed photo threat</button><button type="button" data-ex="1">Fake police notice</button><button type="button" data-ex="2">Late-night call</button>
-      </div>
-      <button class="btn primary" type="submit">Flip the threat</button>
+<section class="hero" id="top"><div class="wrap">
+  <div>
+    <span class="eyebrow">For anyone threatened by a loan app</span>
+    <h1>Their threats are <span class="flipword">your evidence.</span></h1>
+    <p class="lede">Every scary message flips into the facts, the law it breaks, and proof against the people who sent it.</p>
+    <div class="ctas">
+      <a class="btn gold" href="#flip"><svg class="icon"><use href="#i-flip"/></svg>Flip a threat</a>
+      <a class="btn line" href="#borrow"><svg class="icon"><use href="#i-calc"/></svg>Check a loan first</a>
     </div>
-  </form>
-  <p class="privacy"><svg class="icon"><use href="#i-lock"/></svg>Checked on your phone. Nothing leaves this device unless you choose to share it.</p>
-
-  <div class="result" id="result" aria-live="polite"></div>
-</div></section>
-
-<section class="band alt" id="borrow"><div class="wrap">
-  <div class="sec-head">
-    <p class="eyebrow">Stage 1 · Prevent</p>
-    <h2>Before you borrow, see the real price.</h2>
-    <p class="muted">Scam apps advertise the loan amount and hide the cost. Enter what the app shows you.</p>
+    <div class="trust">
+      <span><svg class="icon"><use href="#i-lock"/></svg>Stays on your phone</span>
+      <span><svg class="icon"><use href="#i-globe"/></svg>English · हिन्दी · தமிழ்</span>
+      <span><svg class="icon"><use href="#i-hands"/></svg>Free, no sign-up</span>
+    </div>
   </div>
-  <div class="borrow">
-    <form id="check-form">
-      <div class="fields">
-        <div class="field"><label for="c-promised">Loan shown (₹)</label><input id="c-promised" inputmode="numeric" value="5000"></div>
-        <div class="field"><label for="c-received">You actually get (₹)</label><input id="c-received" inputmode="numeric" value="3500"></div>
-        <div class="field"><label for="c-repay">You must repay (₹)</label><input id="c-repay" inputmode="numeric" value="5000"></div>
-        <div class="field"><label for="c-days">Within (days)</label><input id="c-days" inputmode="numeric" value="7"></div>
+  <div class="phone" aria-label="Example: three threats from a loan agent flipping into facts">
+    <div class="screen">
+      <div class="chat-top"><span class="av">LG</span><div><b>LoanGully Recovery</b><small>+91 90000 33118</small></div></div>
+      <div class="chat" id="demo-chat">
+        <span class="stamp">Today, 10:42 pm</span>
+        <div class="fcard" data-demo><div class="inner"><div class="face front"><span class="tag">Threat</span>Your morphed photo goes to all your contacts tonight.</div><div class="face back"><span class="tag">Fact</span>A morphed photo is fake, and making it is a crime under the IT Act.</div></div></div>
+        <div class="fcard" data-demo><div class="inner"><div class="face front"><span class="tag">Threat</span>FIR is ready. Police will arrest you tomorrow.</div><div class="face back"><span class="tag">Fact</span>Police don’t arrest anyone over WhatsApp. This threat is itself an offence.</div></div></div>
+        <div class="fcard" data-demo><div class="inner"><div class="face front"><span class="tag">Threat</span>Pay ₹6,200 in 2 hours or else.</div><div class="face back"><span class="tag">Fact</span>The deadline is made up. Save this; it is now evidence #3.</div></div></div>
       </div>
-      <details class="flags-q"><summary>Anything else about the app? (optional)</summary><div id="c-questions"></div></details>
+      <div class="chat-foot"><svg class="icon"><use href="#i-shield"/></svg>LoanShield is reading along<span class="sh">3 saved</span></div>
+    </div>
+  </div>
+</div></section>
+
+<div class="stats-band"><div class="wrap"><div class="stat-row">
+  <div class="stat"><b>87</b><span>illegal loan apps blocked by MeitY in Dec 2025</span></div>
+  <div class="stat"><b>2,000+</b><span>loan apps removed from the Play Store</span></div>
+  <div class="stat"><b>67.8%</b><span>of cybercrime complaints are financial fraud</span></div>
+</div></div></div>
+
+<section class="band" id="flip"><div class="wrap">
+  <div class="sec-head center">
+    <span class="eyebrow">Stage 3 · Protect</span>
+    <h2>Paste what they sent. Watch it flip.</h2>
+  </div>
+  <div class="tool">
+    <form class="composer" id="flip-form">
+      <label for="msg" class="small muted" style="display:block;margin:0 0 .5rem .2rem;font-weight:700">Their message</label>
+      <textarea id="msg" placeholder="Paste a WhatsApp message or SMS, or write what was said on a call"></textarea>
+      <div class="row">
+        <div class="examples" aria-label="Examples">
+          <button type="button" data-ex="0"><svg class="icon"><use href="#i-image"/></svg>Photo threat</button>
+          <button type="button" data-ex="1"><svg class="icon"><use href="#i-scale"/></svg>Fake police</button>
+          <button type="button" data-ex="2"><svg class="icon"><use href="#i-clock"/></svg>Late-night call</button>
+        </div>
+        <button class="btn primary" type="submit"><svg class="icon"><use href="#i-flip"/></svg>Flip it</button>
+      </div>
     </form>
-    <div class="apr-card" id="check-out"></div>
+    <p class="privacy"><svg class="icon"><use href="#i-lock"/></svg>Checked on this device. Nothing is sent anywhere unless you choose to share it.</p>
+    <div class="result" id="result" aria-live="polite"></div>
   </div>
 </div></section>
 
-<section class="band" id="pipeline"><div class="wrap">
-  <div class="sec-head">
-    <p class="eyebrow">The LoanShield system</p>
+<section class="band" id="borrow" style="padding-top:0"><div class="wrap">
+  <div class="borrow">
+    <div>
+      <div class="sec-head" style="margin-bottom:1.5rem">
+        <span class="eyebrow">Stage 1 · Prevent</span>
+        <h2>Before you borrow, see the real price.</h2>
+        <p class="muted">Move the sliders to match what the app shows you.</p>
+      </div>
+      <form class="sliders" id="check-form">
+        <div class="sl"><label for="c-promised">Loan shown <output id="o-promised"></output></label><input type="range" id="c-promised" min="1000" max="50000" step="500" value="5000"></div>
+        <div class="sl"><label for="c-received">Money that reaches you <output id="o-received"></output></label><input type="range" id="c-received" min="500" max="50000" step="100" value="3500"></div>
+        <div class="sl"><label for="c-repay">You must repay <output id="o-repay"></output></label><input type="range" id="c-repay" min="500" max="80000" step="100" value="5000"></div>
+        <div class="sl"><label for="c-days">Within <output id="o-days"></output></label><input type="range" id="c-days" min="3" max="365" step="1" value="7"></div>
+        <details class="flags-q"><summary>Anything else about the app?</summary><div id="c-questions"></div></details>
+      </form>
+    </div>
+    <div class="tag-card" id="check-out"></div>
+  </div>
+</div></section>
+
+<section class="band dark" id="system"><div class="wrap">
+  <div class="sec-head center">
+    <span class="eyebrow">The LoanShield system</span>
     <h2>The app is one part. People do the rest.</h2>
-    <p class="muted">Five stages run in a loop. Teal stages are carried by this app; grey ones by self-help groups, legal-aid clinics, volunteers and regulators.</p>
+    <p class="muted">Five stages run in a loop. Tap a stage.</p>
   </div>
-  <ol class="pipe" id="pipe"></ol>
-  <p class="loop"><svg class="icon"><use href="#i-loop"/></svg>Hotspots found in Reform decide where the next Prevent camps run.</p>
-  <div class="legend"><span><i class="app"></i>Carried by the app</span><span><i></i>Carried by people and partners</span></div>
-
-  <div class="diff">
-    <div><h3>It answers fear with facts</h3><p>Other tools label a message as spam. LoanShield tells the person what the threat really means and what the law says about it.</p></div>
-    <div><h3>Every threat strengthens the case</h3><p>Each message becomes sealed evidence, a law broken and a link to the operator. Being harassed starts producing proof.</p></div>
-    <div><h3>It follows the money, not the app name</h3><p>Ten rebranded apps that use one UPI ID become one operator, and only after three different people report it.</p></div>
+  <div class="system">
+    <div>
+      <div class="loop" id="loop">
+        <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,.14)" stroke-width=".6" stroke-dasharray="1.5 1.5"/><path d="M50 12 a38 38 0 0 1 9 1.1" fill="none" stroke="#F2B33D" stroke-width=".8"/></svg>
+        <div class="hub"><div><b>One loop</b><span>Reform decides where Prevent goes next</span></div></div>
+      </div>
+      <div class="legend"><span><i class="app"></i>Carried by the app</span><span><i></i>Carried by people and partners</span></div>
+    </div>
+    <div class="stage-panel" id="stage-panel" aria-live="polite"></div>
   </div>
 </div></section>
 
-<section class="band alt" id="map"><div class="wrap">
-  <div class="sec-head">
-    <p class="eyebrow">Stage 2 · Detect</p>
-    <h2>One operator, many app names.</h2>
-    <p class="muted">Reports that share a UPI ID, a phone number or the same threat wording join into one operator. Phone numbers stay masked.</p>
+<section class="band" id="different"><div class="wrap">
+  <div class="sec-head center">
+    <span class="eyebrow">Why this is different</span>
+    <h2>Other tools block messages. This one fights back.</h2>
   </div>
+  <div class="diff">
+    <article><span class="ic"><svg class="icon"><use href="#i-flip"/></svg></span><h3>Answers fear with facts</h3><p class="muted small">Each threat is shown next to what is actually true, so panic doesn’t push you to pay.</p><p class="vs">Spam filters: <b>“This may be spam.”</b></p></article>
+    <article><span class="ic"><svg class="icon"><use href="#i-lock"/></svg></span><h3>Every threat builds your case</h3><p class="muted small">Messages are sealed as evidence, matched to the law and linked to the operator.</p><p class="vs">Complaint portals: <b>one complaint, no proof.</b></p></article>
+    <article><span class="ic"><svg class="icon"><use href="#i-link"/></svg></span><h3>Follows the money</h3><p class="muted small">Rebranded apps that share a UPI ID become one operator, made public after 3 reports.</p><p class="vs">App bans: <b>one name at a time.</b></p></article>
+  </div>
+</div></section>
+
+<section class="band" id="map" style="padding-top:0"><div class="wrap">
   <div class="map-top">
-    <p class="small muted" id="graph-status"></p>
+    <div class="sec-head" style="margin:0">
+      <span class="eyebrow">Stage 2 · Detect</span>
+      <h2>One operator, many app names.</h2>
+      <p class="muted small" id="graph-status"></p>
+    </div>
     <div class="seg" role="group" aria-label="Data shown"><button type="button" data-mode="live" aria-pressed="false">Live</button><button type="button" data-mode="sample" aria-pressed="true">Sample</button></div>
   </div>
   <div class="stats" id="stats"></div>
   <div class="ops" id="ops"></div>
 </div></section>
+
+<section class="band dark" id="help"><div class="wrap">
+  <div class="sec-head"><span class="eyebrow">You are not alone</span><h2>Don’t pay to make it stop. Call.</h2></div>
+  <div class="help">
+    <div><b>1930</b><span>National cybercrime helpline. Or file at cybercrime.gov.in</span></div>
+    <div><b>14416</b><span>Tele-MANAS. Free mental health support, 24×7</span></div>
+    <div><b>112</b><span>If you feel unsafe right now</span></div>
+  </div>
+</div></section>
 </main>
 
-<footer><div class="wrap grid">
-  <div>
-    <a class="logo" href="#flip"><span class="mark"><svg class="icon"><use href="#i-shield"/></svg></span>LoanShield</a>
-    <p class="small muted" style="margin-top:.7rem;max-width:42ch">A Social Work &amp; Sustainability project on SDGs 1, 8, 10 and 16. Sample app names, UPI IDs and numbers are fictional. The law mapping is a guide, not legal advice.</p>
-    <p class="small muted" style="margin-top:.5rem">[Team names] · [Course code] · [Institution]</p>
+<footer><div class="wrap">
+  <a class="logo" href="#top"><span class="mark"><svg class="icon"><use href="#i-shield"/></svg></span>LoanShield</a>
+  <div class="links2">
+    <button class="link-btn" type="button" data-deck="LoanShield_Final.pdf">Final presentation</button>
+    <button class="link-btn" type="button" data-deck="LoanShield_Part1_Problem.pdf">Part 1: the problem</button>
   </div>
-  <div><h3>Get help now</h3><ul class="nums">
-    <li><b>1930</b> Cybercrime helpline</li><li><b>14416</b> Tele-MANAS, free, 24×7</li><li><b>112</b> If you are in danger</li><li><a href="https://cybercrime.gov.in" target="_blank" rel="noopener">cybercrime.gov.in</a></li>
-  </ul></div>
-  <div><h3>Project files</h3><ul>
-    <li><button class="link-btn" type="button" data-deck="LoanShield_Final.pdf">Final presentation (PDF)</button></li>
-    <li><button class="link-btn" type="button" data-deck="LoanShield_Part1_Problem.pdf">Part 1: the problem (PDF)</button></li>
-    <li class="small muted" id="val-line"></li>
-  </ul></div>
+  <p style="flex-basis:100%">Social Work &amp; Sustainability · SDGs 1, 8, 10, 16 · [Team names] · [Course code] · [Institution]. Sample names, UPI IDs and numbers are fictional. The law mapping is a guide, not legal advice. <span id="val-line"></span></p>
 </div></footer>
 
 <dialog id="dlg-shield" aria-labelledby="sh-title">
-  <div class="dlg-head"><h3 id="sh-title">Warn your contacts first</h3><button class="x" type="button" data-close aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></div>
+  <div class="dlg-head"><h3 id="sh-title"><span class="ic"><svg class="icon"><use href="#i-users"/></svg></span>Warn your contacts first</h3><button class="x" type="button" data-close aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></div>
   <div class="dlg-body">
-    <p class="muted small">Blackmail works when your family hears it from them first. Send this before they do, and their messages arrive already discredited.</p>
+    <p class="muted small">Blackmail only works if your family hears it from them first. Send this now.</p>
     <div class="radios" role="radiogroup" aria-label="Language">
       <label><input type="radio" name="sh-lang" value="en" checked><span>English</span></label>
       <label><input type="radio" name="sh-lang" value="hi"><span>हिन्दी</span></label>
       <label><input type="radio" name="sh-lang" value="ta"><span>தமிழ்</span></label>
     </div>
     <div class="field"><label for="sh-name">Sign it as (optional)</label><input id="sh-name" placeholder="Your first name"></div>
-    <textarea class="out" id="sh-out" readonly style="font-family:var(--body);font-size:.95rem;min-height:150px"></textarea>
+    <div class="bubble-out"><textarea id="sh-out" readonly aria-label="Warning message"></textarea></div>
     <div class="btns">
       <a class="btn primary sm" id="sh-wa" target="_blank" rel="noopener" href="#">Open in WhatsApp</a>
       <button class="btn ghost sm" type="button" id="sh-copy"><svg class="icon"><use href="#i-copy"/></svg>Copy</button>
-      <button class="btn ghost sm" type="button" id="sh-log">I sent it, add to my case</button>
+      <button class="btn ghost sm" type="button" id="sh-log">I sent it</button>
     </div>
   </div>
 </dialog>
 
 <dialog id="dlg-vault" aria-labelledby="v-title">
-  <div class="dlg-head"><h3 id="v-title">My evidence</h3><button class="x" type="button" data-close aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></div>
+  <div class="dlg-head"><h3 id="v-title"><span class="ic"><svg class="icon"><use href="#i-lock"/></svg></span>My evidence</h3><button class="x" type="button" data-close aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></div>
   <div class="dlg-body">
-    <p class="muted small">Each item is sealed with a SHA-256 hash that also covers the item before it. If anything is edited later, the chain breaks and shows where.</p>
+    <p class="muted small">Each item is sealed with a SHA-256 hash that also covers the one before it. Edit anything later and the chain breaks.</p>
     <div id="chain-status"></div>
     <ul class="vault" id="vault-list"></ul>
     <div class="btns">
       <button class="btn ghost sm" type="button" id="verify-btn">Check the chain</button>
-      <button class="btn ghost sm" type="button" id="tamper-btn">Show what tampering looks like</button>
+      <button class="btn ghost sm" type="button" id="tamper-btn">Show tampering</button>
       <button class="btn ghost sm" type="button" id="clear-vault">Delete all</button>
     </div>
     <div class="confirm" id="clear-confirm" hidden>Delete every saved item from this device? <button class="btn sm primary" type="button" id="clear-yes" style="background:var(--threat)">Delete</button><button class="btn sm ghost" type="button" id="clear-no">Keep</button></div>
     <form id="note-form" style="display:grid;gap:.5rem;border-top:1px solid var(--line);padding-top:1rem">
-      <label for="note-text" style="font-weight:700">Log a call or event</label>
+      <label for="note-text" style="font-weight:700">Log a call</label>
       <textarea id="note-text" class="out" style="min-height:70px;font-family:var(--body)" placeholder="10:40 pm, call from 90000 33118. Said they would send my photo to my family."></textarea>
       <p class="small" id="note-error" style="color:var(--threat)"></p>
-      <div><button class="btn primary sm" type="submit">Add to my case</button></div>
+      <div><button class="btn primary sm" type="submit">Seal it</button></div>
     </form>
   </div>
 </dialog>
 
 <dialog id="dlg-packet" aria-labelledby="p-title">
-  <div class="dlg-head"><h3 id="p-title">Complaint packet</h3><button class="x" type="button" data-close aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></div>
+  <div class="dlg-head"><h3 id="p-title"><span class="ic"><svg class="icon"><use href="#i-doc"/></svg></span>Complaint packet</h3><button class="x" type="button" data-close aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></div>
   <div class="dlg-body">
-    <p class="muted small">Ready to take to a legal-aid clinic or file at cybercrime.gov.in. It lists the identifiers, the laws, the linked operator and your sealed evidence.</p>
+    <p class="muted small">For a legal-aid clinic or cybercrime.gov.in: identifiers, laws, linked operator and sealed evidence.</p>
     <div class="fields">
       <div class="field"><label for="pk-name">Your name</label><input id="pk-name"></div>
       <div class="field"><label for="pk-city">City or district</label><input id="pk-city"></div>
     </div>
-    <div class="field"><label for="pk-summary">What happened, in your words (optional)</label><input id="pk-summary"></div>
+    <div class="field"><label for="pk-summary">What happened (optional)</label><input id="pk-summary"></div>
     <textarea class="out" id="packet-out" readonly></textarea>
     <div class="btns">
       <button class="btn primary sm" type="button" id="packet-copy"><svg class="icon"><use href="#i-copy"/></svg>Copy</button>
