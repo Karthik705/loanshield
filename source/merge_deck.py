@@ -25,7 +25,7 @@ def new(bg):
     s.background.fill.solid(); s.background.fill.fore_color.rgb = C(bg)
     return s
 
-def text(s, x, y, w, h, runs, size=14, color=INK, bold=False, align=PP_ALIGN.LEFT, anchor=MSO_ANCHOR.TOP):
+def text(s, x, y, w, h, runs, size=14, color=INK, bold=False, align=PP_ALIGN.LEFT, anchor=MSO_ANCHOR.TOP, font=None, spacing=None):
     tb = s.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(h)); tf = tb.text_frame
     tf.word_wrap = True; tf.vertical_anchor = anchor
     for m in ('margin_left', 'margin_right', 'margin_top', 'margin_bottom'): setattr(tf, m, 0)
@@ -37,8 +37,9 @@ def text(s, x, y, w, h, runs, size=14, color=INK, bold=False, align=PP_ALIGN.LEF
         if isinstance(p, str): segs = ((p, {}),)
         for t, o in segs:
             r = para.add_run(); r.text = t; f = r.font
-            f.name = F; f.size = Pt(o.get('size', size)); f.bold = o.get('bold', bold); f.color.rgb = C(o.get('color', color))
+            f.name = o.get('font', font or F); f.size = Pt(o.get('size', size)); f.bold = o.get('bold', bold); f.color.rgb = C(o.get('color', color))
         if i: para.space_before = Pt(6)
+        if spacing: para.line_spacing = spacing
     return tb
 
 def eyebrow(s, t): text(s, 1.0, 0.5, 8, 0.35, t, size=13, color=RED, bold=True)
@@ -74,6 +75,43 @@ def num_tile(s, x, y, n, color, size=0.7, fs=26):
     text(s, x, y, size, size, str(n), size=fs, bold=True, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
 def arrow(s, x, y, color=RED, size=22): text(s, x, y, 0.4, 0.5, '→', size=size, color=color, bold=True, align=PP_ALIGN.CENTER)
+
+
+# ---------------- 1. Title slide, redesigned ----------------
+s = prs.slides[0]
+for sh in list(s.shapes): sh._element.getparent().remove(sh._element)
+s.background.fill.solid(); s.background.fill.fore_color.rgb = C('0E0807')
+P = 'Poppins'
+# soft glow behind the phone
+g = s.shapes.add_shape(MSO_SHAPE.OVAL, Inches(8.05), Inches(0.45), Inches(5.2), Inches(5.2)); g.fill.solid(); g.fill.fore_color.rgb = C('2A0E10'); g.line.fill.background(); g.shadow.inherit = False
+box(s, 0.9, 0.85, 3.9, 0.42, '2A0E10', RED, lw=1, adj=0.5)
+text(s, 0.9, 0.85, 3.9, 0.42, 'SOCIAL & SUSTAINABILITY PROJECT', size=11, color=RED, bold=True, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, font=P)
+text(s, 0.9, 1.6, 8.0, 2.2, [(('Digital Loan App', {}),), (('Harassment', {'color': RED}), (' in India', {}))], size=44, bold=True, font=P, spacing=0.95)
+box(s, 0.95, 3.35, 1.3, 0.07, RED, None, MSO_SHAPE.RECTANGLE)
+text(s, 0.9, 3.6, 7.6, 0.9, ['Framing the crisis through the UN SDGs,', 'and our solution: LoanShield.'], size=17, color='C9C9D3', font=P)
+for i, n in enumerate([1, 8, 10, 16]):
+    num_tile(s, 0.95 + i * 0.68, 4.95, n, SDG[n], 0.55, 16)
+text(s, 3.75, 4.95, 3.5, 0.55, 'Four SDGs, one problem', size=12, color=MUTE, anchor=MSO_ANCHOR.MIDDLE, font=P)
+team = [('Karthik J', '23BRS1191'), ('K Annu Prasath', '24BCE5409'), ('Pasunuru Sai Vivek', '24BCE1239'), ('Srinidhi Vishal Chejarla', '24BCE1493')]
+for i, (nm, reg) in enumerate(team):
+    x = 0.95 + i * 3.05
+    box(s, x, 6.1, 2.85, 0.02, '3A2A28', None, MSO_SHAPE.RECTANGLE)
+    text(s, x, 6.22, 2.85, 0.35, nm, size=12.5, color=INK, bold=True, font=P)
+    text(s, x, 6.55, 2.85, 0.3, reg, size=10.5, color=ORG, font=P)
+# phone with threat messages
+ph = box(s, 9.05, 0.75, 3.15, 5.0, '1A1414', '3A2A28', lw=2, adj=0.1)
+box(s, 9.2, 0.9, 2.85, 4.7, '201818', None, adj=0.08)
+box(s, 10.2, 1.0, 0.85, 0.1, '3A2A28', None, adj=0.5)
+text(s, 9.4, 1.25, 2.5, 0.3, 'Recovery Agent', size=11, color=INK, bold=True, font=P)
+text(s, 9.4, 1.5, 2.5, 0.25, 'Today, 10:42 pm', size=8.5, color=MUTE, font=P)
+msgs = ['Pay ₹6,200 in 2 hours or your photo goes to all your contacts.', 'FIR ready. Police will arrest you tomorrow.', 'Your family will know you are a fraud.']
+for i, m in enumerate(msgs):
+    y = 1.95 + i * 1.05
+    box(s, 9.4, y, 2.45, 0.85, '2E1A1A', '5A2630', lw=1, adj=0.18)
+    text(s, 9.55, y + 0.08, 2.2, 0.72, m, size=10, color='EAD9DA', anchor=MSO_ANCHOR.MIDDLE, font=P)
+b = s.shapes.add_shape(MSO_SHAPE.OVAL, Inches(11.6), Inches(1.75), Inches(0.42), Inches(0.42)); b.fill.solid(); b.fill.fore_color.rgb = C(RED); b.line.fill.background(); b.shadow.inherit = False
+text(s, 11.6, 1.75, 0.42, 0.42, '3', size=12, bold=True, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, font=P)
+notes(s, 'Introduce the team and the problem: illegal loan apps harass borrowers with threats like these. Part 1 frames it through four SDGs; Part 2 presents our solution, LoanShield.')
 
 # ---------------- 8. Problem recap ----------------
 s = new(BG_WARM); eyebrow(s, 'PROBLEM RECAP')
