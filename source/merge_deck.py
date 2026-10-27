@@ -197,6 +197,23 @@ picture(s, IMG + 'n_case.jpg', 5.0, 2.2 + h + 0.25, w=7.3)
 notes(s, 'Demo: paste the example message, show the cards flipping, then the case tracker filling up. Everything is checked on the phone; nothing is uploaded unless the victim shares it.')
 
 
+
+# ---------------- 12a. Tech stack (simple) ----------------
+s = new(BG_INK); eyebrow(s, 'TECH STACK'); title(s, 'Simple tools, chosen to reach everyone')
+stack = [('Website', 'Opens in any phone browser. No app to install.', 'HTML · CSS · JavaScript'),
+         ('Reading threats', 'Spots threat words in English, Hindi and Tamil.', 'Keyword detection + AI for screenshots'),
+         ('Voice', 'Speak instead of typing; hear the facts read out.', 'Phone’s built-in speech tools'),
+         ('Evidence seal', 'A digital fingerprint shows if anything was changed.', 'SHA-256 hashing'),
+         ('Linking operators', 'Matches UPI IDs and numbers across reports.', 'Pattern matching'),
+         ('Privacy & hosting', 'Checked on the phone; shared only by choice. Free to run.', 'GitHub Pages')]
+for i, (h, b, t) in enumerate(stack):
+    x, y = 1.0 + (i % 3) * 3.75, 2.15 + (i // 3) * 2.15
+    box(s, x, y, 3.5, 1.9)
+    text(s, x + 0.25, y + 0.22, 3.0, 0.4, h, size=17, color=RED, bold=True)
+    text(s, x + 0.25, y + 0.68, 3.0, 0.7, b, size=13, color=INK)
+    text(s, x + 0.25, y + 1.42, 3.0, 0.35, t, size=11, color=MUTE)
+notes(s, 'Keep it light: everything runs in a normal phone browser, needs no app and costs almost nothing to run. The point is reach, not complexity.')
+
 # ---------------- 12b. Built for people who can't use tech ----------------
 s = new(BG_WARM); eyebrow(s, 'FOR PEOPLE WHO STRUGGLE WITH TECH'); title(s, 'Two ways in: do it yourself, or get assistance')
 acc = [('Do it yourself', 'Paste, speak or upload a screenshot of the threat. About a minute.'),
