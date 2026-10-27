@@ -157,6 +157,22 @@ w, h = picture(s, IMG + 'n_cards.jpg', 5.0, 2.2, w=7.3)
 picture(s, IMG + 'n_case.jpg', 5.0, 2.2 + h + 0.25, w=7.3)
 notes(s, 'Demo: paste the example message, show the cards flipping, then the case tracker filling up. Everything is checked on the phone; nothing is uploaded unless the victim shares it.')
 
+
+# ---------------- 12b. Built for people who can't use tech ----------------
+s = new(BG_WARM); eyebrow(s, 'FOR PEOPLE WHO STRUGGLE WITH TECH'); title(s, 'The people least used to phones come first')
+acc = [('Speaks their language', 'Tamil, Hindi or English with one tap.'),
+       ('Reads it aloud', 'The facts are spoken, for people who can’t read well.'),
+       ('Helper mode', 'A family member or volunteer uses it with them: big text, 4 simple steps.'),
+       ('Nothing to install', 'Opens from a link on any cheap phone. No sign-up, no password.')]
+for i, (h, b) in enumerate(acc):
+    x, y = 1.0 + (i % 2) * 2.95, 2.15 + (i // 2) * 1.75
+    card(s, x, y, 2.75, 1.55, h, b, hc=ORG, hs=16, bs=12.5)
+box(s, 1.0, 5.75, 5.7, 1.05, '1A1A24', ORG)
+text(s, 1.25, 5.75, 5.3, 1.05, (('No smartphone at all? ', {'bold': True, 'color': ORG}), ('Student volunteers run weekly help desks at SHG meetings and do it for them.', {})), size=13.5, anchor=MSO_ANCHOR.MIDDLE)
+w, h = picture(s, IMG + 'n_tamil.jpg', 7.0, 2.15, w=5.25)
+text(s, 7.0, 2.15 + h + 0.15, 5.25, 0.4, 'The same threat, explained in Tamil.', size=12, color=MUTE)
+notes(s, 'The first people trapped are those least used to smartphones. Language, read-aloud and helper mode are in the website now; the help desks at SHG meetings reach people with no smartphone at all. Next step: a WhatsApp number they can simply forward messages to.')
+
 # ---------------- 13. Novelty ----------------
 s = new(BG_WARM); eyebrow(s, 'NOVELTY'); title(s, 'What is new in our approach')
 text(s, 1.0, 2.05, 4.8, 0.35, 'USUAL APPROACH', size=12, color=MUTE, bold=True)
@@ -230,8 +246,8 @@ notes(s, 'Be upfront about limits. Scanner results on our test set: 100% recall,
 # ---------------- 17. Future scope ----------------
 s = new(BG_WARM); eyebrow(s, 'FUTURE SCOPE'); title(s, 'Where LoanShield goes next')
 fut = [('Android app', 'Share any message straight into LoanShield; log late-night calls automatically.'),
-       ('Smarter reading', 'A trained model for Tamil, Telugu and Bengali threats.'),
-       ('WhatsApp bot', 'Flip a threat by forwarding it, on any phone.'),
+       ('Smarter reading', 'A trained model for Tamil, Telugu and Bengali threats, and voice messages.'),
+       ('WhatsApp bot', 'Forward a threat to one number and get the facts back as a voice note.'),
        ('Voice notes', 'Turn threatening voice messages into text evidence.'),
        ('90-day pilot', 'One SHG federation and one cyber-safety NGO in Chennai.'),
        ('Open data for NGOs', 'Share operator links with partner NGOs to speed up takedowns.')]
