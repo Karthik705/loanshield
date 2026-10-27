@@ -101,15 +101,40 @@ function speakFacts() {
   speak(cats.map(c => { const f = factFor(c); return f.head + ' ' + f.body; }).join(' '));
 }
 $('#hero-listen').addEventListener('click', () => speak(tr('hero')));
-$('#easy-listen').addEventListener('click', () => speak(tr('hero')));
-$('#helper-toggle').addEventListener('click', e => {
-  const on = !document.documentElement.classList.contains('helper');
+function setHelper(on) {
   document.documentElement.classList.toggle('helper', on); $('#helper-steps').hidden = !on;
-  e.currentTarget.setAttribute('aria-pressed', on); e.currentTarget.textContent = on ? 'Turn off helper mode' : 'Turn on helper mode';
-  if (on) { $('#flip').scrollIntoView({ behavior: 'smooth' }); toast('Helper mode on: bigger text and simple steps'); }
+}
+$('#go-diy').addEventListener('click', () => { setHelper(false); $('#flip').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => $('#msg').focus({ preventScroll: true }), 500); });
+$('#go-helper').addEventListener('click', () => { setHelper(true); $('#flip').scrollIntoView({ behavior: 'smooth' }); toast('Helper mode on: bigger text and simple steps'); });
+$('#go-callback').addEventListener('click', () => openDlg('dlg-call'));
+$('#call-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const phone = $('#cb-phone').value.replace(/\D/g, '').slice(-10);
+  if (!/^[6-9]\d{9}$/.test(phone)) { $('#cb-error').textContent = 'Enter a 10-digit mobile number, like 98765 43210.'; return; }
+  $('#cb-error').textContent = '';
+  const when = $('input[name=cb-time]:checked').value, langName = { en: 'English', ta: 'Tamil', hi: 'Hindi' }[state.lang];
+  let saved = false;
+  if (state.live.db && state.live.uid) {
+    try { await state.live.db.doc('callbacks/' + state.live.uid).set({ name: $('#cb-name').value.trim().slice(0, 40), phone, lang: state.lang, when, ts: Date.now() }); saved = true; } catch (x) { saved = false; }
+  }
+  $('#call-body').innerHTML = saved
+    ? `<div class="sent"><span class="big">${ico('i-check')}</span><h3>Request sent</h3><p>A volunteer will call <b>${esc(LS.maskPhone(phone))}</b> in the ${esc(when.toLowerCase())}, in ${esc(langName)}. Meanwhile, don’t pay and don’t reply to them.</p><p class="small muted">They will never ask you for money, an OTP or bank details.</p><button class="btn ghost sm" type="button" data-close>Close</button></div>`
+    : `<div class="sent"><span class="big">${ico('i-phone')}</span><h3>Call-backs run on the pilot link</h3><p>This copy of the site can’t send requests yet. Until then, visit the weekly help desk at your SHG meeting, or ask someone you trust to sit with you and choose <b>Someone is with me</b>.</p><button class="btn ghost sm" type="button" data-close>Close</button></div>`;
 });
+async function startInbox(user) {
+  try { if (!user || !(await user.isOwner())) return; } catch (e) { return; }
+  const box = $('#inbox'); box.hidden = false;
+  state.live.db.collection('callbacks').onSnapshot(snap => {
+    const rows = snap.docs.map(d => d.data() || {}).sort((x, y) => (y.ts || 0) - (x.ts || 0));
+    box.innerHTML = `<h3><span>Volunteer inbox (only you see this)</span><span class="muted small">${rows.length} request${rows.length === 1 ? '' : 's'}</span></h3>` +
+      (rows.length ? `<ul>${rows.map(r => `<li><b>${esc(r.name || 'No name')}</b><span>${esc(String(r.phone || ''))}</span><span>${esc({ en: 'English', ta: 'Tamil', hi: 'Hindi' }[r.lang] || '')}</span><span>${esc(r.when || '')}</span><span class="muted">${r.ts ? esc(new Date(r.ts).toLocaleString('en-IN')) : ''}</span></li>`).join('')}</ul>` : '<p class="small muted" style="margin-top:.4rem">No call-back requests yet.</p>');
+  }, () => { box.hidden = true; });
+}
 
 /* ---------------- voice & screenshot to info, one tap ---------------- */
+Object.assign(T.en, { startH2: 'How would you like to do this?', diyH: 'I can use my phone', diyP: 'Paste the message, speak it, or upload a screenshot. It takes about a minute.', diyBtn: 'Start', helpH: 'I need help with this', helpP: 'Pick your language. Everything can be read out loud.', withMe: 'Someone is with me', withMeSub: 'Big text, 4 simple steps, read aloud', callMe: 'Call me back', callMeSub: 'A trained volunteer calls you', cta: 'Get started' });
+Object.assign(T.ta, { startH2: 'இதை எப்படிச் செய்ய விரும்புகிறீர்கள்?', diyH: 'நானே போனில் செய்வேன்', diyP: 'செய்தியை ஒட்டுங்கள், பேசுங்கள், அல்லது ஸ்கிரீன்ஷாட் பதிவேற்றுங்கள். ஒரு நிமிடம் போதும்.', diyBtn: 'தொடங்கு', helpH: 'எனக்கு உதவி வேண்டும்', helpP: 'உங்கள் மொழியைத் தேர்ந்தெடுங்கள். எல்லாவற்றையும் சத்தமாகப் படிக்கலாம்.', withMe: 'என்னுடன் ஒருவர் இருக்கிறார்', withMeSub: 'பெரிய எழுத்து, 4 எளிய படிகள்', callMe: 'என்னை அழையுங்கள்', callMeSub: 'பயிற்சி பெற்ற தன்னார்வலர் அழைப்பார்', cta: 'தொடங்குங்கள்' });
+Object.assign(T.hi, { startH2: 'आप यह कैसे करना चाहेंगे?', diyH: 'मैं फ़ोन चला सकता/सकती हूँ', diyP: 'मैसेज चिपकाएँ, बोलकर बताएँ, या स्क्रीनशॉट डालें। लगभग एक मिनट लगता है।', diyBtn: 'शुरू करें', helpH: 'मुझे मदद चाहिए', helpP: 'अपनी भाषा चुनें। सब कुछ पढ़कर सुनाया जा सकता है।', withMe: 'कोई मेरे साथ है', withMeSub: 'बड़े अक्षर, 4 आसान कदम', callMe: 'मुझे कॉल करें', callMeSub: 'प्रशिक्षित वॉलंटियर कॉल करेगा', cta: 'शुरू करें' });
 Object.assign(T.en, { speak: 'Speak it', shot: 'Upload a screenshot', understood: 'We understood', oneTap: 'Protect me in one tap', oneTapSub: 'Seals this message as evidence, adds their UPI ID and number to the operator map, and writes your contact warning and complaint.', protect: 'Protect me', doneH: 'Done. Now, in the next hour:', h1: 'Don’t pay and don’t reply. Paying brings new demands.', h2: 'Send the warning to your contacts before they do.', h3: 'Take the complaint to a legal-aid clinic or an NGO helpdesk.', wa: 'Send on WhatsApp', copy: 'Copy complaint', listening: 'Listening… speak now', reading: 'Reading the screenshot…' });
 Object.assign(T.ta, { speak: 'பேசுங்கள்', shot: 'ஸ்கிரீன்ஷாட்', understood: 'நாங்கள் புரிந்தது', oneTap: 'ஒரே தொடுதலில் பாதுகாப்பு', oneTapSub: 'இந்தச் செய்தியை ஆதாரமாகச் சேமித்து, உங்கள் தொடர்புகளுக்கான எச்சரிக்கையையும் புகாரையும் தயார் செய்யும்.', protect: 'என்னைப் பாதுகா', doneH: 'முடிந்தது. அடுத்த ஒரு மணி நேரத்தில்:', h1: 'பணம் கட்ட வேண்டாம், பதில் அனுப்ப வேண்டாம்.', h2: 'அவர்கள் அனுப்பும் முன் உங்கள் தொடர்புகளுக்கு எச்சரிக்கை அனுப்புங்கள்.', h3: 'புகாரை சட்ட உதவி மையம் அல்லது NGO உதவி மையத்திடம் கொண்டு செல்லுங்கள்.', wa: 'வாட்ஸ்அப்பில் அனுப்பு', copy: 'புகாரை நகலெடு', listening: 'கேட்கிறது… இப்போது பேசுங்கள்', reading: 'ஸ்கிரீன்ஷாட்டைப் படிக்கிறது…' });
 Object.assign(T.hi, { speak: 'बोलकर बताएँ', shot: 'स्क्रीनशॉट', understood: 'हमने समझा', oneTap: 'एक टैप में सुरक्षा', oneTapSub: 'यह मैसेज सबूत के रूप में सेव करता है, और आपके संपर्कों के लिए चेतावनी और शिकायत तैयार करता है।', protect: 'मुझे बचाएँ', doneH: 'हो गया। अब अगले एक घंटे में:', h1: 'पैसे न दें और जवाब न दें।', h2: 'उनसे पहले अपने संपर्कों को चेतावनी भेजें।', h3: 'शिकायत लीगल-एड क्लिनिक या NGO हेल्पडेस्क ले जाएँ।', wa: 'WhatsApp पर भेजें', copy: 'शिकायत कॉपी करें', listening: 'सुन रहा है… अब बोलिए', reading: 'स्क्रीनशॉट पढ़ रहा है…' });
@@ -533,6 +558,7 @@ async function startLive() {
   if (!db || !user) { $('.seg button[data-mode=live]').disabled = true; return; }
   const uid = await user.id().catch(() => null), can = await user.can('data.write').catch(() => null);
   Object.assign(state.live, { db, uid, on: true, canWrite: !!uid && can !== false });
+  startInbox(user);
   db.collection('reports').onSnapshot(snap => { state.live.reports = liveToReports(snap.docs); if (state.mode === 'live') renderGraph(); }, () => { state.live.on = false; });
 }
 

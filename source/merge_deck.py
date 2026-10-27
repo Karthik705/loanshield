@@ -160,18 +160,18 @@ notes(s, 'Demo: paste the example message, show the cards flipping, then the cas
 
 
 # ---------------- 12b. Built for people who can't use tech ----------------
-s = new(BG_WARM); eyebrow(s, 'FOR PEOPLE WHO STRUGGLE WITH TECH'); title(s, 'The people least used to phones come first')
-acc = [('Speaks their language', 'Tamil, Hindi or English with one tap.'),
-       ('Reads it aloud', 'The facts are spoken, for people who can’t read well.'),
-       ('Helper mode', 'A family member or volunteer uses it with them: big text, 4 simple steps.'),
-       ('Nothing to install', 'Opens from a link on any cheap phone. No sign-up, no password.')]
+s = new(BG_WARM); eyebrow(s, 'FOR PEOPLE WHO STRUGGLE WITH TECH'); title(s, 'Two ways in: do it yourself, or get assistance')
+acc = [('Do it yourself', 'Paste, speak or upload a screenshot of the threat. About a minute.'),
+       ('Someone is with me', 'Helper mode for family or volunteers: big text, 4 simple steps, read aloud.'),
+       ('Call me back', 'Leave a number; a trained NGO volunteer calls in their language.'),
+       ('Their language, out loud', 'Tamil, Hindi or English with one tap; facts are spoken.')]
 for i, (h, b) in enumerate(acc):
     x, y = 1.0 + (i % 2) * 2.95, 2.15 + (i // 2) * 1.75
     card(s, x, y, 2.75, 1.55, h, b, hc=ORG, hs=16, bs=12.5)
 box(s, 1.0, 5.75, 5.7, 1.05, '1A1A24', ORG)
 text(s, 1.25, 5.75, 5.3, 1.05, (('No smartphone at all? ', {'bold': True, 'color': ORG}), ('Student volunteers run weekly help desks at SHG meetings and do it for them.', {})), size=13.5, anchor=MSO_ANCHOR.MIDDLE)
-w, h = picture(s, IMG + 'n_tamil.jpg', 7.0, 2.15, w=5.25)
-text(s, 7.0, 2.15 + h + 0.15, 5.25, 0.4, 'The same threat, explained in Tamil.', size=12, color=MUTE)
+w, h = picture(s, IMG + 'n_start.jpg', 7.0, 2.15, w=5.25)
+text(s, 7.0, 2.15 + h + 0.15, 5.25, 0.4, 'The first choice on the website.', size=12, color=MUTE)
 notes(s, 'The first people trapped are those least used to smartphones. Language, read-aloud and helper mode are in the website now; the help desks at SHG meetings reach people with no smartphone at all. Next step: a WhatsApp number they can simply forward messages to.')
 
 # ---------------- 13. Novelty ----------------

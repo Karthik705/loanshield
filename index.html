@@ -405,6 +405,41 @@ html.helper .composer textarea{font-size:1.2rem}
 .hour p{color:var(--on-deep);margin:0;font-size:.92rem}
 .hour .btn{justify-self:start}
 @media (max-width:720px){.hour{grid-template-columns:1fr}}
+
+/* start here: two paths */
+.paths{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:1.2rem;align-items:stretch}
+@media (max-width:820px){.paths{grid-template-columns:1fr}}
+.path{border-radius:26px;padding:1.8rem;display:flex;flex-direction:column;gap:.8rem;align-items:flex-start;position:relative}
+.path.diy{background:var(--surface);border:1px solid var(--line)}
+.path.assist{background:var(--deep);color:var(--on-deep);box-shadow:0 30px 60px -36px rgba(10,46,44,.8)}
+.path.assist p{color:var(--on-deep-mute)}
+.ptag{font:700 .72rem var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:.3rem .7rem;border-radius:99px;background:var(--teal-soft);color:var(--teal)}
+.path.assist .ptag{background:var(--marigold);color:#2A1E05}
+.pic{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:var(--teal-soft);color:var(--teal);margin-top:.4rem}
+.path.assist .pic{background:rgba(242,179,61,.16);color:var(--marigold)}
+.pic .icon{width:32px;height:32px}
+.path h3{font-size:1.6rem;font-weight:800}
+.path p{color:var(--mute)}
+.ways{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:.5rem}
+.ways li{display:inline-flex;gap:.35rem;align-items:center;font-size:.88rem;background:var(--bg);border-radius:99px;padding:.3rem .75rem}
+.path.diy .btn{margin-top:auto}
+.path.assist .langs.big{background:rgba(255,255,255,.08)}
+.path.assist .langs.big button{color:var(--on-deep)}
+.path.assist .langs.big button[aria-pressed="true"]{color:#2A1E05}
+.help-opts{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;width:100%;margin-top:auto}
+@media (max-width:480px){.help-opts{grid-template-columns:1fr}}
+.opt{display:flex;gap:.8rem;align-items:center;text-align:left;background:var(--marigold);color:#2A1E05;border:0;border-radius:18px;padding:1rem 1.1rem;cursor:pointer;font:inherit;transition:transform .15s}
+.opt:hover{transform:translateY(-2px)}
+.opt+.opt{background:var(--on-deep);color:var(--deep)}
+.opt .icon{width:28px;height:28px}
+.opt b{display:block;font:800 1.05rem var(--display)}
+.opt small{display:block;font-size:.8rem;opacity:.8}
+.inbox{margin-top:1rem;background:var(--surface);border:1px dashed var(--teal);border-radius:20px;padding:1.1rem 1.3rem}
+.inbox h3{font-size:1rem;display:flex;justify-content:space-between;gap:1rem}
+.inbox ul{list-style:none;padding:0;margin:.6rem 0 0;display:grid;gap:.4rem;font-size:.9rem}
+.inbox li{display:flex;flex-wrap:wrap;gap:.3rem 1rem;background:var(--bg);border-radius:10px;padding:.5rem .7rem}
+.sent{display:grid;gap:.8rem;justify-items:start}
+.sent .big{width:56px;height:56px;border-radius:50%;background:var(--teal);color:var(--on-teal);display:grid;place-items:center}
 </style>
 </head>
 <body>
@@ -439,7 +474,7 @@ html.helper .composer textarea{font-size:1.2rem}
 <header class="top"><div class="wrap">
   <a class="logo" href="#top"><span class="mark"><svg class="icon"><use href="#i-shield"/></svg></span>LoanShield</a>
   <nav class="links" aria-label="Sections">
-    <a href="#easy">For everyone</a><a href="#new">What’s new</a><a href="#flip">Try it</a><a href="#map">Follow the money</a><a href="#system">How it works</a>
+    <a href="#start">Start</a><a href="#flip">Flip a threat</a><a href="#new">What’s new</a><a href="#map">Follow the money</a><a href="#system">How it works</a>
   </nav>
   <div class="langs" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="ta" aria-pressed="false" lang="ta">தமிழ்</button><button type="button" data-lang="hi" aria-pressed="false" lang="hi">हिन्दी</button></div>
 </div></header>
@@ -451,7 +486,7 @@ html.helper .composer textarea{font-size:1.2rem}
     <h1 data-i18n-html="h1">Their threats are <span class="flipword">your evidence.</span></h1>
     <p class="lede" data-i18n="lede">Other tools try to block the threats. LoanShield turns each one into a fact for the victim and evidence against the operator.</p>
     <div class="ctas">
-      <a class="btn gold" href="#flip"><svg class="icon"><use href="#i-flip"/></svg><span data-i18n="cta">Flip a threat</span></a>
+      <a class="btn gold" href="#start"><svg class="icon"><use href="#i-flip"/></svg><span data-i18n="cta">Get started</span></a>
       <button class="btn line" type="button" id="hero-listen"><svg class="icon"><use href="#i-sound"/></svg><span data-i18n="listen">Listen</span></button>
     </div>
     <div class="trust">
@@ -475,38 +510,37 @@ html.helper .composer textarea{font-size:1.2rem}
 </div></section>
 
 
-<section class="band" id="easy"><div class="wrap">
+<section class="band" id="start"><div class="wrap">
   <div class="sec-head center">
-    <span class="eyebrow">No tech skills needed</span>
-    <h2>Made for people who find phones hard.</h2>
-    <p class="muted">The people these apps trap first are often the ones least used to smartphones. So LoanShield doesn’t expect them to be.</p>
+    <span class="eyebrow">Start here</span>
+    <h2 data-i18n="startH2">How would you like to do this?</h2>
   </div>
-  <div class="easy">
-    <article><span class="ic"><svg class="icon"><use href="#i-globe"/></svg></span><h3>Speaks their language</h3><p>Tamil, Hindi or English. One tap, no settings.</p>
-      <div class="langs big" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">English</button><button type="button" data-lang="ta" aria-pressed="false" lang="ta">தமிழ்</button><button type="button" data-lang="hi" aria-pressed="false" lang="hi">हिन्दी</button></div></article>
-    <article><span class="ic"><svg class="icon"><use href="#i-sound"/></svg></span><h3>Reads it aloud</h3><p>Can’t read well? The facts are spoken out loud in their language.</p>
-      <button class="btn ghost sm" type="button" id="easy-listen"><svg class="icon"><use href="#i-sound"/></svg>Hear an example</button></article>
-    <article><span class="ic"><svg class="icon"><use href="#i-hands"/></svg></span><h3>A helper can do it</h3><p>A family member or SHG volunteer uses it with them. Helper mode shows big text and simple steps.</p>
-      <button class="btn ghost sm" type="button" id="helper-toggle" aria-pressed="false">Turn on helper mode</button></article>
-    <article><span class="ic"><svg class="icon"><use href="#i-phone"/></svg></span><h3>Nothing to install</h3><p>Opens from a link on any cheap phone. No app, no sign-up, no password.</p>
-      <p class="soon">Next: just forward the message on WhatsApp.</p></article>
+  <div class="paths">
+    <article class="path diy">
+      <span class="ptag">Do it yourself</span>
+      <span class="pic"><svg class="icon"><use href="#i-phone"/></svg></span>
+      <h3 data-i18n="diyH">I can use my phone</h3>
+      <p data-i18n="diyP">Paste the message, speak it, or upload a screenshot. It takes about a minute.</p>
+      <ul class="ways"><li><svg class="icon"><use href="#i-copy"/></svg>Paste</li><li><svg class="icon"><use href="#i-mic"/></svg>Speak</li><li><svg class="icon"><use href="#i-image"/></svg>Screenshot</li></ul>
+      <button class="btn primary" type="button" id="go-diy"><span data-i18n="diyBtn">Start</span></button>
+    </article>
+    <article class="path assist">
+      <span class="ptag">Get assistance</span>
+      <span class="pic"><svg class="icon"><use href="#i-hands"/></svg></span>
+      <h3 data-i18n="helpH">I need help with this</h3>
+      <p data-i18n="helpP">Pick your language. Everything can be read out loud.</p>
+      <div class="langs big" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">English</button><button type="button" data-lang="ta" aria-pressed="false" lang="ta">தமிழ்</button><button type="button" data-lang="hi" aria-pressed="false" lang="hi">हिन्दी</button></div>
+      <div class="help-opts">
+        <button type="button" class="opt" id="go-helper"><svg class="icon"><use href="#i-users"/></svg><span><b data-i18n="withMe">Someone is with me</b><small data-i18n="withMeSub">Big text, 4 simple steps, read aloud</small></span></button>
+        <button type="button" class="opt" id="go-callback"><svg class="icon"><use href="#i-phone"/></svg><span><b data-i18n="callMe">Call me back</b><small data-i18n="callMeSub">A trained volunteer calls you</small></span></button>
+      </div>
+    </article>
   </div>
-  <div class="no-phone"><span class="ic"><svg class="icon"><use href="#i-users"/></svg></span><p><b>No smartphone at all?</b> Trained student volunteers run weekly help desks at SHG meetings. They flip the threat, seal the evidence and send the warnings for the person.</p></div>
+  <div class="no-phone"><span class="ic"><svg class="icon"><use href="#i-users"/></svg></span><p><b>No smartphone at all?</b> Trained student volunteers run weekly help desks at SHG meetings. They do every step for the person.</p></div>
+  <div class="inbox" id="inbox" hidden></div>
 </div></section>
 
-<section class="band alt2" id="new"><div class="wrap">
-  <div class="sec-head center">
-    <span class="eyebrow">What’s new</span>
-    <h2>Three things no existing tool does.</h2>
-  </div>
-  <div class="vs-grid">
-    <div class="vs-row"><span class="num-big">1</span><div class="old"><span class="lbl">Usual approach</span><p>Spam blockers hide the message. The victim is still scared.</p></div><span class="to" aria-hidden="true">→</span><div class="newc"><span class="lbl">LoanShield</span><h3>Flips fear into facts</h3><p>Each threat is answered with what is actually true and the law it breaks.</p></div></div>
-    <div class="vs-row"><span class="num-big">2</span><div class="old"><span class="lbl">Usual approach</span><p>More threats means more fear, and each victim complains alone.</p></div><span class="to" aria-hidden="true">→</span><div class="newc"><span class="lbl">LoanShield</span><h3>Every threat builds the case</h3><p>Messages are sealed as tamper-proof evidence, and contacts are warned first.</p></div></div>
-    <div class="vs-row"><span class="num-big">3</span><div class="old"><span class="lbl">Usual approach</span><p>One app is reported. It comes back next week under a new name.</p></div><span class="to" aria-hidden="true">→</span><div class="newc"><span class="lbl">LoanShield</span><h3>Follows the money</h3><p>Reports that share a UPI ID or number join into one operator, public after 3 people.</p></div></div>
-  </div>
-</div></section>
-
-<section class="band" id="flip"><div class="wrap">
+<section class="band alt2" id="flip"><div class="wrap">
   <div class="sec-head center">
     <span class="eyebrow">Try it</span>
     <h2 data-i18n="tryH2">Paste what they sent. Watch it flip.</h2>
@@ -542,7 +576,19 @@ html.helper .composer textarea{font-size:1.2rem}
 
 
 
-<section class="band" id="map"><div class="wrap">
+<section class="band" id="new"><div class="wrap">
+  <div class="sec-head center">
+    <span class="eyebrow">What’s new</span>
+    <h2>Three things no existing tool does.</h2>
+  </div>
+  <div class="vs-grid">
+    <div class="vs-row"><span class="num-big">1</span><div class="old"><span class="lbl">Usual approach</span><p>Spam blockers hide the message. The victim is still scared.</p></div><span class="to" aria-hidden="true">→</span><div class="newc"><span class="lbl">LoanShield</span><h3>Flips fear into facts</h3><p>Each threat is answered with what is actually true and the law it breaks.</p></div></div>
+    <div class="vs-row"><span class="num-big">2</span><div class="old"><span class="lbl">Usual approach</span><p>More threats means more fear, and each victim complains alone.</p></div><span class="to" aria-hidden="true">→</span><div class="newc"><span class="lbl">LoanShield</span><h3>Every threat builds the case</h3><p>Messages are sealed as tamper-proof evidence, and contacts are warned first.</p></div></div>
+    <div class="vs-row"><span class="num-big">3</span><div class="old"><span class="lbl">Usual approach</span><p>One app is reported. It comes back next week under a new name.</p></div><span class="to" aria-hidden="true">→</span><div class="newc"><span class="lbl">LoanShield</span><h3>Follows the money</h3><p>Reports that share a UPI ID or number join into one operator, public after 3 people.</p></div></div>
+  </div>
+</div></section>
+
+<section class="band alt2" id="map"><div class="wrap">
   <div class="map-top">
     <div class="sec-head" style="margin:0">
       <span class="eyebrow">Follow the money</span>
@@ -582,6 +628,24 @@ html.helper .composer textarea{font-size:1.2rem}
   <p style="flex-basis:100%">Social &amp; Sustainability project · SDGs 1, 8, 10 and 16 · Karthik J (23BRS1191) · K Annu Prasath (24BCE5409) · Pasunuru Sai Vivek (24BCE1239) · Srinidhi Vishal Chejarla (24BCE1493)</p>
   <p style="flex-basis:100%;font-size:.8rem">Sample app names, UPI IDs and numbers are fictional. The law mapping is a guide, not legal advice. <span id="val-line"></span></p>
 </div></footer>
+
+<dialog id="dlg-call" aria-labelledby="c-title">
+  <div class="dlg-head"><h3 id="c-title"><span class="ic"><svg class="icon"><use href="#i-phone"/></svg></span>Ask a volunteer to call you</h3><button class="x" type="button" data-close aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></div>
+  <div class="dlg-body" id="call-body">
+    <form id="call-form" style="display:grid;gap:1rem">
+      <p class="muted small">A trained volunteer from our partner NGO calls you, in your language, and goes through every step with you. Only the LoanShield volunteer team sees this.</p>
+      <div class="fields">
+        <div class="field"><label for="cb-name">Your first name (optional)</label><input id="cb-name" autocomplete="given-name"></div>
+        <div class="field"><label for="cb-phone">Phone number</label><input id="cb-phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="10-digit mobile" maxlength="14"></div>
+      </div>
+      <div><p style="font-weight:700;font-size:.86rem;margin-bottom:.4rem">Best time to call</p>
+        <div class="radios" role="radiogroup" aria-label="Best time"><label><input type="radio" name="cb-time" value="Morning" checked><span>Morning</span></label><label><input type="radio" name="cb-time" value="Afternoon"><span>Afternoon</span></label><label><input type="radio" name="cb-time" value="Evening"><span>Evening</span></label></div></div>
+      <p class="small" id="cb-error" style="color:var(--threat)"></p>
+      <div class="btns"><button class="btn primary" type="submit">Request a call</button></div>
+      <p class="small muted">Our volunteers will never ask you for money, an OTP or your bank details.</p>
+    </form>
+  </div>
+</dialog>
 
 <dialog id="dlg-shield" aria-labelledby="sh-title">
   <div class="dlg-head"><h3 id="sh-title"><span class="ic"><svg class="icon"><use href="#i-users"/></svg></span>Warn your contacts first</h3><button class="x" type="button" data-close aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></div>
@@ -1133,15 +1197,40 @@ function speakFacts() {
   speak(cats.map(c => { const f = factFor(c); return f.head + ' ' + f.body; }).join(' '));
 }
 $('#hero-listen').addEventListener('click', () => speak(tr('hero')));
-$('#easy-listen').addEventListener('click', () => speak(tr('hero')));
-$('#helper-toggle').addEventListener('click', e => {
-  const on = !document.documentElement.classList.contains('helper');
+function setHelper(on) {
   document.documentElement.classList.toggle('helper', on); $('#helper-steps').hidden = !on;
-  e.currentTarget.setAttribute('aria-pressed', on); e.currentTarget.textContent = on ? 'Turn off helper mode' : 'Turn on helper mode';
-  if (on) { $('#flip').scrollIntoView({ behavior: 'smooth' }); toast('Helper mode on: bigger text and simple steps'); }
+}
+$('#go-diy').addEventListener('click', () => { setHelper(false); $('#flip').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => $('#msg').focus({ preventScroll: true }), 500); });
+$('#go-helper').addEventListener('click', () => { setHelper(true); $('#flip').scrollIntoView({ behavior: 'smooth' }); toast('Helper mode on: bigger text and simple steps'); });
+$('#go-callback').addEventListener('click', () => openDlg('dlg-call'));
+$('#call-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const phone = $('#cb-phone').value.replace(/\D/g, '').slice(-10);
+  if (!/^[6-9]\d{9}$/.test(phone)) { $('#cb-error').textContent = 'Enter a 10-digit mobile number, like 98765 43210.'; return; }
+  $('#cb-error').textContent = '';
+  const when = $('input[name=cb-time]:checked').value, langName = { en: 'English', ta: 'Tamil', hi: 'Hindi' }[state.lang];
+  let saved = false;
+  if (state.live.db && state.live.uid) {
+    try { await state.live.db.doc('callbacks/' + state.live.uid).set({ name: $('#cb-name').value.trim().slice(0, 40), phone, lang: state.lang, when, ts: Date.now() }); saved = true; } catch (x) { saved = false; }
+  }
+  $('#call-body').innerHTML = saved
+    ? `<div class="sent"><span class="big">${ico('i-check')}</span><h3>Request sent</h3><p>A volunteer will call <b>${esc(LS.maskPhone(phone))}</b> in the ${esc(when.toLowerCase())}, in ${esc(langName)}. Meanwhile, don’t pay and don’t reply to them.</p><p class="small muted">They will never ask you for money, an OTP or bank details.</p><button class="btn ghost sm" type="button" data-close>Close</button></div>`
+    : `<div class="sent"><span class="big">${ico('i-phone')}</span><h3>Call-backs run on the pilot link</h3><p>This copy of the site can’t send requests yet. Until then, visit the weekly help desk at your SHG meeting, or ask someone you trust to sit with you and choose <b>Someone is with me</b>.</p><button class="btn ghost sm" type="button" data-close>Close</button></div>`;
 });
+async function startInbox(user) {
+  try { if (!user || !(await user.isOwner())) return; } catch (e) { return; }
+  const box = $('#inbox'); box.hidden = false;
+  state.live.db.collection('callbacks').onSnapshot(snap => {
+    const rows = snap.docs.map(d => d.data() || {}).sort((x, y) => (y.ts || 0) - (x.ts || 0));
+    box.innerHTML = `<h3><span>Volunteer inbox (only you see this)</span><span class="muted small">${rows.length} request${rows.length === 1 ? '' : 's'}</span></h3>` +
+      (rows.length ? `<ul>${rows.map(r => `<li><b>${esc(r.name || 'No name')}</b><span>${esc(String(r.phone || ''))}</span><span>${esc({ en: 'English', ta: 'Tamil', hi: 'Hindi' }[r.lang] || '')}</span><span>${esc(r.when || '')}</span><span class="muted">${r.ts ? esc(new Date(r.ts).toLocaleString('en-IN')) : ''}</span></li>`).join('')}</ul>` : '<p class="small muted" style="margin-top:.4rem">No call-back requests yet.</p>');
+  }, () => { box.hidden = true; });
+}
 
 /* ---------------- voice & screenshot to info, one tap ---------------- */
+Object.assign(T.en, { startH2: 'How would you like to do this?', diyH: 'I can use my phone', diyP: 'Paste the message, speak it, or upload a screenshot. It takes about a minute.', diyBtn: 'Start', helpH: 'I need help with this', helpP: 'Pick your language. Everything can be read out loud.', withMe: 'Someone is with me', withMeSub: 'Big text, 4 simple steps, read aloud', callMe: 'Call me back', callMeSub: 'A trained volunteer calls you', cta: 'Get started' });
+Object.assign(T.ta, { startH2: 'இதை எப்படிச் செய்ய விரும்புகிறீர்கள்?', diyH: 'நானே போனில் செய்வேன்', diyP: 'செய்தியை ஒட்டுங்கள், பேசுங்கள், அல்லது ஸ்கிரீன்ஷாட் பதிவேற்றுங்கள். ஒரு நிமிடம் போதும்.', diyBtn: 'தொடங்கு', helpH: 'எனக்கு உதவி வேண்டும்', helpP: 'உங்கள் மொழியைத் தேர்ந்தெடுங்கள். எல்லாவற்றையும் சத்தமாகப் படிக்கலாம்.', withMe: 'என்னுடன் ஒருவர் இருக்கிறார்', withMeSub: 'பெரிய எழுத்து, 4 எளிய படிகள்', callMe: 'என்னை அழையுங்கள்', callMeSub: 'பயிற்சி பெற்ற தன்னார்வலர் அழைப்பார்', cta: 'தொடங்குங்கள்' });
+Object.assign(T.hi, { startH2: 'आप यह कैसे करना चाहेंगे?', diyH: 'मैं फ़ोन चला सकता/सकती हूँ', diyP: 'मैसेज चिपकाएँ, बोलकर बताएँ, या स्क्रीनशॉट डालें। लगभग एक मिनट लगता है।', diyBtn: 'शुरू करें', helpH: 'मुझे मदद चाहिए', helpP: 'अपनी भाषा चुनें। सब कुछ पढ़कर सुनाया जा सकता है।', withMe: 'कोई मेरे साथ है', withMeSub: 'बड़े अक्षर, 4 आसान कदम', callMe: 'मुझे कॉल करें', callMeSub: 'प्रशिक्षित वॉलंटियर कॉल करेगा', cta: 'शुरू करें' });
 Object.assign(T.en, { speak: 'Speak it', shot: 'Upload a screenshot', understood: 'We understood', oneTap: 'Protect me in one tap', oneTapSub: 'Seals this message as evidence, adds their UPI ID and number to the operator map, and writes your contact warning and complaint.', protect: 'Protect me', doneH: 'Done. Now, in the next hour:', h1: 'Don’t pay and don’t reply. Paying brings new demands.', h2: 'Send the warning to your contacts before they do.', h3: 'Take the complaint to a legal-aid clinic or an NGO helpdesk.', wa: 'Send on WhatsApp', copy: 'Copy complaint', listening: 'Listening… speak now', reading: 'Reading the screenshot…' });
 Object.assign(T.ta, { speak: 'பேசுங்கள்', shot: 'ஸ்கிரீன்ஷாட்', understood: 'நாங்கள் புரிந்தது', oneTap: 'ஒரே தொடுதலில் பாதுகாப்பு', oneTapSub: 'இந்தச் செய்தியை ஆதாரமாகச் சேமித்து, உங்கள் தொடர்புகளுக்கான எச்சரிக்கையையும் புகாரையும் தயார் செய்யும்.', protect: 'என்னைப் பாதுகா', doneH: 'முடிந்தது. அடுத்த ஒரு மணி நேரத்தில்:', h1: 'பணம் கட்ட வேண்டாம், பதில் அனுப்ப வேண்டாம்.', h2: 'அவர்கள் அனுப்பும் முன் உங்கள் தொடர்புகளுக்கு எச்சரிக்கை அனுப்புங்கள்.', h3: 'புகாரை சட்ட உதவி மையம் அல்லது NGO உதவி மையத்திடம் கொண்டு செல்லுங்கள்.', wa: 'வாட்ஸ்அப்பில் அனுப்பு', copy: 'புகாரை நகலெடு', listening: 'கேட்கிறது… இப்போது பேசுங்கள்', reading: 'ஸ்கிரீன்ஷாட்டைப் படிக்கிறது…' });
 Object.assign(T.hi, { speak: 'बोलकर बताएँ', shot: 'स्क्रीनशॉट', understood: 'हमने समझा', oneTap: 'एक टैप में सुरक्षा', oneTapSub: 'यह मैसेज सबूत के रूप में सेव करता है, और आपके संपर्कों के लिए चेतावनी और शिकायत तैयार करता है।', protect: 'मुझे बचाएँ', doneH: 'हो गया। अब अगले एक घंटे में:', h1: 'पैसे न दें और जवाब न दें।', h2: 'उनसे पहले अपने संपर्कों को चेतावनी भेजें।', h3: 'शिकायत लीगल-एड क्लिनिक या NGO हेल्पडेस्क ले जाएँ।', wa: 'WhatsApp पर भेजें', copy: 'शिकायत कॉपी करें', listening: 'सुन रहा है… अब बोलिए', reading: 'स्क्रीनशॉट पढ़ रहा है…' });
@@ -1565,6 +1654,7 @@ async function startLive() {
   if (!db || !user) { $('.seg button[data-mode=live]').disabled = true; return; }
   const uid = await user.id().catch(() => null), can = await user.can('data.write').catch(() => null);
   Object.assign(state.live, { db, uid, on: true, canWrite: !!uid && can !== false });
+  startInbox(user);
   db.collection('reports').onSnapshot(snap => { state.live.reports = liveToReports(snap.docs); if (state.mode === 'live') renderGraph(); }, () => { state.live.on = false; });
 }
 
