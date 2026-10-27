@@ -109,6 +109,85 @@ $('#helper-toggle').addEventListener('click', e => {
   if (on) { $('#flip').scrollIntoView({ behavior: 'smooth' }); toast('Helper mode on: bigger text and simple steps'); }
 });
 
+/* ---------------- voice & screenshot to info, one tap ---------------- */
+Object.assign(T.en, { speak: 'Speak it', shot: 'Upload a screenshot', understood: 'We understood', oneTap: 'Protect me in one tap', oneTapSub: 'Seals this message as evidence, adds their UPI ID and number to the operator map, and writes your contact warning and complaint.', protect: 'Protect me', doneH: 'Done. Now, in the next hour:', h1: 'Don’t pay and don’t reply. Paying brings new demands.', h2: 'Send the warning to your contacts before they do.', h3: 'Take the complaint to a legal-aid clinic or an NGO helpdesk.', wa: 'Send on WhatsApp', copy: 'Copy complaint', listening: 'Listening… speak now', reading: 'Reading the screenshot…' });
+Object.assign(T.ta, { speak: 'பேசுங்கள்', shot: 'ஸ்கிரீன்ஷாட்', understood: 'நாங்கள் புரிந்தது', oneTap: 'ஒரே தொடுதலில் பாதுகாப்பு', oneTapSub: 'இந்தச் செய்தியை ஆதாரமாகச் சேமித்து, உங்கள் தொடர்புகளுக்கான எச்சரிக்கையையும் புகாரையும் தயார் செய்யும்.', protect: 'என்னைப் பாதுகா', doneH: 'முடிந்தது. அடுத்த ஒரு மணி நேரத்தில்:', h1: 'பணம் கட்ட வேண்டாம், பதில் அனுப்ப வேண்டாம்.', h2: 'அவர்கள் அனுப்பும் முன் உங்கள் தொடர்புகளுக்கு எச்சரிக்கை அனுப்புங்கள்.', h3: 'புகாரை சட்ட உதவி மையம் அல்லது NGO உதவி மையத்திடம் கொண்டு செல்லுங்கள்.', wa: 'வாட்ஸ்அப்பில் அனுப்பு', copy: 'புகாரை நகலெடு', listening: 'கேட்கிறது… இப்போது பேசுங்கள்', reading: 'ஸ்கிரீன்ஷாட்டைப் படிக்கிறது…' });
+Object.assign(T.hi, { speak: 'बोलकर बताएँ', shot: 'स्क्रीनशॉट', understood: 'हमने समझा', oneTap: 'एक टैप में सुरक्षा', oneTapSub: 'यह मैसेज सबूत के रूप में सेव करता है, और आपके संपर्कों के लिए चेतावनी और शिकायत तैयार करता है।', protect: 'मुझे बचाएँ', doneH: 'हो गया। अब अगले एक घंटे में:', h1: 'पैसे न दें और जवाब न दें।', h2: 'उनसे पहले अपने संपर्कों को चेतावनी भेजें।', h3: 'शिकायत लीगल-एड क्लिनिक या NGO हेल्पडेस्क ले जाएँ।', wa: 'WhatsApp पर भेजें', copy: 'शिकायत कॉपी करें', listening: 'सुन रहा है… अब बोलिए', reading: 'स्क्रीनशॉट पढ़ रहा है…' });
+
+function understoodHtml(text) {
+  const f = LS.extractFacts(text), chips = [];
+  if (f.app) chips.push(`<span class="chip"><i>App</i>${esc(f.app)}</span>`);
+  f.amounts.forEach(a => chips.push(`<span class="chip"><i>Amount</i>₹${LS.fmt(a)}</span>`));
+  f.upi.forEach(u => chips.push(`<span class="chip"><i>UPI</i>${esc(u)}</span>`));
+  f.phones.forEach(p => chips.push(`<span class="chip"><i>Phone</i>${esc(LS.maskPhone(p))}</span>`));
+  f.times.forEach(t => chips.push(`<span class="chip ${t.outside ? 'warn' : ''}"><i>Time</i>${esc(t.raw)}${t.outside ? ' · after 7 pm' : ''}</span>`));
+  return chips.length ? `<div class="understood rise"><span class="lbl">${esc(tr('understood'))}</span>${chips.join('')}</div>` : '';
+}
+function oneTapHtml() {
+  const done = state.oneTapDone === (state.flip && state.flip.text);
+  if (!done) return `<div class="onetap rise" id="onetap"><div><h3>${ico('i-bolt')}${esc(tr('oneTap'))}</h3><p>${esc(tr('oneTapSub'))}</p></div><button class="btn gold" type="button" id="protect-btn">${ico('i-shield')}${esc(tr('protect'))}</button></div>`;
+  return `<div class="onetap rise" id="onetap"><h3>${ico('i-check')}${esc(tr('doneH'))}</h3>
+    <div class="hour"><div><b>1</b><p>${esc(tr('h1'))}</p></div>
+    <div><b>2</b><p>${esc(tr('h2'))}</p><a class="btn gold sm" id="ot-wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(shieldText())}">${esc(tr('wa'))}</a></div>
+    <div><b>3</b><p>${esc(tr('h3'))}</p><button class="btn line sm" type="button" id="ot-copy">${ico('i-copy')}${esc(tr('copy'))}</button></div></div></div>`;
+}
+function wireOneTap() {
+  const b = $('#protect-btn'); if (b) b.addEventListener('click', protectAll);
+  const w = $('#ot-wa'); if (w) w.addEventListener('click', () => { shieldSent(); });
+  const c = $('#ot-copy'); if (c) c.addEventListener('click', async () => { await refreshPacket(); copyText($('#packet-out').value, $('#packet-out'), 'Complaint copied'); });
+}
+async function protectAll() {
+  const f = state.flip; if (!f) return;
+  const b = $('#protect-btn'); if (b) b.disabled = true;
+  if (!state.chain.some(e => e.text === f.text)) await addToVault('message', f.text);
+  const ids = f.scan.ids;
+  if (ids.upi.length + ids.phones.length && !state.myReports.some(r => r.text === f.text)) await reportFlip();
+  await refreshPacket();
+  state.oneTapDone = f.text;
+  $('#onetap').outerHTML = oneTapHtml(); wireOneTap(); renderCase();
+  toast('Sealed, linked and ready');
+}
+
+/* voice: the phone's own speech-to-text, in the chosen language */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null;
+$('#mic-btn').addEventListener('click', () => {
+  const btn = $('#mic-btn'), st = $('#in-status');
+  if (rec) { rec.stop(); return; }
+  if (!SR) { toast('Voice typing needs Chrome on Android or desktop. You can also use the microphone on your keyboard.'); $('#msg').focus(); return; }
+  rec = new SR(); rec.lang = VOICE[state.lang]; rec.interimResults = true; rec.continuous = true;
+  const base = $('#msg').value.trim() && !EXAMPLES.includes($('#msg').value.trim()) ? $('#msg').value.trim() + ' ' : '';
+  let finalText = '';
+  rec.onresult = e => { let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const r = e.results[i]; if (r.isFinal) finalText += r[0].transcript + ' '; else interim += r[0].transcript; } $('#msg').value = base + finalText + interim; };
+  rec.onerror = e => { toast(e.error === 'not-allowed' || e.error === 'service-not-allowed' ? 'The microphone is blocked here. Open the public link, or use the microphone on your keyboard.' : 'Couldn’t hear that. Try again.'); };
+  rec.onend = () => { rec = null; btn.setAttribute('aria-pressed', 'false'); st.textContent = ''; if ($('#msg').value.trim()) flip($('#msg').value, { scroll: true }); };
+  try { $('#msg').value = base; rec.start(); btn.setAttribute('aria-pressed', 'true'); st.textContent = tr('listening'); } catch (e) { rec = null; toast('Couldn’t start the microphone.'); }
+});
+
+/* screenshot: Claude reads the image (Claude link only) */
+async function shrink(file) {
+  try {
+    const bmp = await createImageBitmap(file), k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    return await new Promise(r => c.toBlob(r, 'image/jpeg', .85));
+  } catch (e) { return file; }
+}
+$('#shot-in').addEventListener('change', async e => {
+  const file = e.target.files && e.target.files[0]; e.target.value = ''; if (!file) return;
+  const st = $('#in-status');
+  let ok = false; try { ok = !!(state.sample && (await state.sample.limits()).images); } catch (x) {}
+  if (!ok) { toast('Reading screenshots works on the Claude link. Here, type or speak the message.'); return; }
+  st.textContent = tr('reading');
+  try {
+    const img = await shrink(file);
+    const a = await state.sample.json('This is a screenshot a victim of an illegal Indian loan app received (WhatsApp, SMS or call log). Copy out every message from the lender or recovery agent exactly as written, in its original language, including amounts, UPI IDs, phone numbers and times. Ignore phone UI chrome. Reply with JSON only: {"text": "<the messages, one per line>", "found": true|false}.', { images: [img], modelTier: 'quick' });
+    if (!a || !a.found || !a.text) { toast('No message found in that image. Try a clearer screenshot.'); return; }
+    $('#msg').value = String(a.text).slice(0, 3000); flip($('#msg').value, { scroll: true });
+  } catch (x) { toast(x && x.code === 'rate_limited' ? 'Too many requests. Try again in a minute.' : 'Couldn’t read the screenshot. Type or speak the message instead.'); }
+  finally { st.textContent = ''; }
+});
+
 function quote(text, phrase) {
   const t = text.replace(/\s+/g, ' ');
   const i = t.toLowerCase().indexOf(phrase.toLowerCase());
@@ -148,8 +227,10 @@ function flip(text, opts) {
     <div class="verdict rise"><span class="pill ${scan.level}">${esc(scan.levelLabel)}</span>
       <div class="meter" aria-label="Threat score ${scan.score} out of 100"><span class="small muted">Calm</span><span class="track"><i style="left:${Math.max(4, Math.min(96, scan.score))}%"></i></span><span class="small muted">Severe</span></div>
       ${n ? `<span class="hint">${ico('i-flip')}${tr('flipped')(n)}</span><button class="btn primary sm listen-btn" type="button" id="listen-facts">${ico('i-sound')}${tr('listen')}</button>` : ''}</div>
+    ${understoodHtml(text)}
     ${n ? `<div class="cards">${cards.join('')}</div>` : `<div class="none rise"><b>No threat words found.</b> <span class="muted">If it still frightened you, seal it anyway. The word list can miss new wording${state.sample ? ', so try the AI reading below' : ''}.</span></div>`}
     ${scan.needsSupport ? `<div class="support rise"><span>You don’t have to pay to make this stop.</span><span class="n"><b>1930</b>cybercrime</span><span class="n"><b>14416</b>Tele-MANAS</span>${hits.some(h => h.cat === 'violence') ? '<span class="n"><b>112</b>danger</span>' : ''}</div>` : ''}
+    ${oneTapHtml()}
     <div class="case rise" id="case"></div>
     ${state.sample ? `<div class="ai" id="ai-box"><button class="link-btn" type="button" id="ai-btn">Not sure? Ask AI to read it, in any language</button></div>` : ''}`;
   $$('#result .fcard').forEach((c, i) => {
@@ -159,6 +240,7 @@ function flip(text, opts) {
   renderCase();
   const ai = $('#ai-btn'); if (ai) ai.addEventListener('click', () => askAI(text));
   const lf = $('#listen-facts'); if (lf) lf.addEventListener('click', speakFacts);
+  wireOneTap();
   if (opts && opts.scroll) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 

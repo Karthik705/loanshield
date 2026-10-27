@@ -147,12 +147,13 @@ notes(s, 'Walk left to right. The website handles Detect and Protect. Prevent, R
 
 # ---------------- 12. The website ----------------
 s = new(BG_BLUE); eyebrow(s, 'THE WEBSITE: ONE PART OF THE SYSTEM'); title(s, 'Paste a threat. Watch it flip.')
-calls = [('Fear → Fact', 'Each threat card turns over to show the truth and the law it breaks.'),
-         ('Case tracker', 'Sealed evidence, laws, operator, contact warning, complaint.'),
-         ('Operator link', 'Same UPI ID as 3 other app names = one operator.')]
+calls = [('Speak, paste or screenshot', 'Say what happened in Tamil, Hindi or English; the key details are pulled out.'),
+         ('Fear → Fact', 'Each threat card turns over to show the truth and the law it breaks.'),
+         ('Protect me in one tap', 'Seals the message, links the operator, writes the warning and complaint.'),
+         ('Case tracker', 'Sealed evidence, laws, operator, contact warning, complaint.')]
 for i, (h, b) in enumerate(calls):
-    y = 2.2 + i * 1.35
-    card(s, 1.0, y, 3.6, 1.15, h, b, hc='4EA8DE', hs=16, bs=12.5)
+    y = 2.15 + i * 1.12
+    card(s, 1.0, y, 3.6, 1.0, h, b, hc='4EA8DE', hs=15, bs=11.5)
 w, h = picture(s, IMG + 'n_cards.jpg', 5.0, 2.2, w=7.3)
 picture(s, IMG + 'n_case.jpg', 5.0, 2.2 + h + 0.25, w=7.3)
 notes(s, 'Demo: paste the example message, show the cards flipping, then the case tracker filling up. Everything is checked on the phone; nothing is uploaded unless the victim shares it.')

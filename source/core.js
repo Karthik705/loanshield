@@ -40,12 +40,12 @@ const RED_FLAG_QUESTIONS = [
    Shared-in text only: the app never reads SMS or WhatsApp in the background.
 ------------------------------------------------------------------ */
 const LEXICON = [
-  { cat: 'contacts', label: 'Threat to message your contacts', w: 40, terms: ['your contacts','your contact list','all your contacts','contact list','your family','your relatives','your office','your boss','your colleagues','your friends','everyone in your phone','everyone you know','message everyone','send to all','tere contacts','tumhare contacts','sabko bhej','sab ko bhej','sabko bata','ghar walon','gharwalon','gharwalo','rishtedaar','office mein bata','tumhare boss'] },
-  { cat: 'image', label: 'Threat to misuse your photos', w: 55, terms: ['morph','morphed','edited photo','nude','obscene','photo viral','viral kar','make viral','leak your photo','photo leak','gandi photo','tumhari photo','your photo will'] },
-  { cat: 'legal', label: 'Fake legal or police threat', w: 40, terms: ['fir','arrest','warrant','legal notice','court notice','digital arrest','cbi','cyber cell','police case','police complaint','jail','giraftaar','case darj','non-bailable'] },
-  { cat: 'shame', label: 'Name-calling or public shaming', w: 35, terms: ['fraud','fraudster','thief','chor','cheater','defaulter','beggar','bhikari','shameless','besharam','loser'] },
-  { cat: 'violence', label: 'Threat of physical harm', w: 60, terms: ['kill you','beat you','break your','maar denge','jaan se','dekh lenge','we know where you live','ghar aa jayenge','come to your house','hurt you'] },
-  { cat: 'urgency', label: 'Pressure to pay right now', w: 10, terms: ['pay now','pay immediately','pay today','final warning','last warning','final notice','within 1 hour','within 2 hours','within 24 hours','abhi pay','turant','last chance'] },
+  { cat: 'contacts', label: 'Threat to message your contacts', w: 40, terms: ['your contacts','your contact list','all your contacts','contact list','your family','your relatives','your office','your boss','your colleagues','your friends','everyone in your phone','everyone you know','message everyone','send to all','tere contacts','tumhare contacts','sabko bhej','sab ko bhej','sabko bata','ghar walon','gharwalon','gharwalo','rishtedaar','office mein bata','tumhare boss','குடும்ப','உறவினர்','நண்பர்கள்','அலுவலக','எல்லோருக்கும் அனுப்','परिवार','रिश्तेदार','दोस्तों','ऑफिस','सबको भेज'] },
+  { cat: 'image', label: 'Threat to misuse your photos', w: 55, terms: ['morph','morphed','edited photo','nude','obscene','photo viral','viral kar','make viral','leak your photo','photo leak','gandi photo','tumhari photo','your photo will','புகைப்பட','போட்டோ','படத்தை','फोटो','फ़ोटो','तस्वीर','वायरल'] },
+  { cat: 'legal', label: 'Fake legal or police threat', w: 40, terms: ['fir','arrest','warrant','legal notice','court notice','digital arrest','cbi','cyber cell','police case','police complaint','jail','giraftaar','case darj','non-bailable','கைது','போலீஸ்','காவல்','வழக்கு','வாரண்ட்','गिरफ्तार','गिरफ़्तार','पुलिस','वारंट','केस दर्ज','जेल'] },
+  { cat: 'shame', label: 'Name-calling or public shaming', w: 35, terms: ['fraud','fraudster','thief','chor','cheater','defaulter','beggar','bhikari','shameless','besharam','loser','திருடன்','மோசடி','ஏமாற்று','चोर','धोखेबाज़','धोखेबाज','फ्रॉड'] },
+  { cat: 'violence', label: 'Threat of physical harm', w: 60, terms: ['kill you','beat you','break your','maar denge','jaan se','dekh lenge','we know where you live','ghar aa jayenge','come to your house','hurt you','கொன்று','அடிப்போம்','வீட்டுக்கு வருவோம்','मार देंगे','जान से','घर आ जाएंगे'] },
+  { cat: 'urgency', label: 'Pressure to pay right now', w: 10, terms: ['pay now','pay immediately','pay today','final warning','last warning','final notice','within 1 hour','within 2 hours','within 24 hours','abhi pay','turant','last chance','உடனே','இன்றே','இப்போதே','अभी','तुरंत','आज ही'] },
   { cat: 'fees', label: 'Extra charges', w: 8, terms: ['penalty','late fee','extra charge','processing fee','double the amount','overdue charge'] }
 ];
 const LEVELS = [
@@ -76,10 +76,19 @@ function scanMessage(text) {
 /* Identifiers the scammer cannot cheaply change. These, not the app name, link rebrands. */
 function extractIdentifiers(text) {
   const t = String(text || '');
-  const upi = uniq((t.match(/\b[a-z0-9._-]{2,}@[a-z]{2,}\b(?!\.)/gi) || []).map(s => s.toLowerCase()));
+  const upi = uniq((t.match(/\b[a-z0-9._-]{2,}@[a-z]{2,}\b(?!\.[a-z])/gi) || []).map(s => s.toLowerCase()));
   const phones = uniq((t.match(/(?:\+91[\s-]?)?\b[6-9]\d{4}[\s-]?\d{5}\b/g) || []).map(normPhone));
   const links = uniq((t.match(/\bhttps?:\/\/[^\s<>"]+|\b[\w-]+\.apk\b/gi) || []).map(s => s.toLowerCase().replace(/[).,]+$/, '')));
   return { upi, phones, links };
+}
+/* Audio/screenshot to info: the key details of a story, for the complaint. */
+function extractFacts(text) {
+  const t = String(text || '');
+  const amounts = uniq((t.match(/(?:₹|rs\.?|inr|rupees?)\s?([\d,]{3,})|([\d,]{3,})\s?(?:rupees|rs\b|ரூபாய்|रुपये)/gi) || []).map(m => +(m.replace(/[^\d]/g, ''))).filter(n => n >= 100 && n < 1e7));
+  const times = callTimes(t).map(x => ({ raw: x.raw, outside: x.outside }));
+  const appM = t.match(/\b([A-Z][A-Za-z]+(?:\s?[A-Z][a-z]+)?)\s+(?:recovery|loan app|app|loans?)\b/);
+  const ids = extractIdentifiers(t);
+  return { amounts, times, app: appM ? appM[1] : '', upi: ids.upi, phones: ids.phones };
 }
 function normPhone(p) { const d = p.replace(/\D/g, ''); return d.slice(-10); }
 
@@ -294,6 +303,6 @@ function fmt(n) { return Number(n).toLocaleString('en-IN', { maximumFractionDigi
 function pct(x) { return Math.round(x * 100) + '%'; }
 function maskPhone(p) { const d = String(p); return d.length === 10 ? d.slice(0, 2) + 'xxxxx' + d.slice(7) : d; }
 
-const API = { normaliseScript, RIGHTS, rightsFor, callTimes, shieldMessage, truthCheck, RED_FLAG_QUESTIONS, LEXICON, scanMessage, extractIdentifiers, templateSimilarity, buildGraph, PUBLISH_THRESHOLD, GENESIS, sha256Hex, appendEntry, verifyChain, buildPacket, fmt, maskPhone };
+const API = { extractFacts, normaliseScript, RIGHTS, rightsFor, callTimes, shieldMessage, truthCheck, RED_FLAG_QUESTIONS, LEXICON, scanMessage, extractIdentifiers, templateSimilarity, buildGraph, PUBLISH_THRESHOLD, GENESIS, sha256Hex, appendEntry, verifyChain, buildPacket, fmt, maskPhone };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.LS = API;
 })(typeof window !== 'undefined' ? window : globalThis);

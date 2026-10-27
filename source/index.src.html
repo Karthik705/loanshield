@@ -383,6 +383,28 @@ html.helper .cards .back p,html.helper .cards q{font-size:1.1rem}
 html.helper .composer textarea{font-size:1.2rem}
 .listen-btn{display:inline-flex;align-items:center;gap:.4rem}
 :lang(ta) .cards .back b,.ta .cards .back b{line-height:1.4}
+
+/* voice, screenshot, one tap */
+.inputs{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-top:.7rem}
+.in-btn{display:inline-flex;align-items:center;gap:.45rem;font:700 .92rem var(--body);background:var(--teal-soft);color:var(--teal);border:0;border-radius:12px;padding:.6rem 1rem;cursor:pointer}
+.in-btn:hover{filter:brightness(.97)}
+.in-btn[aria-pressed="true"]{background:var(--threat);color:#fff;animation:pulse 1.2s infinite}
+.understood{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:.8rem 1rem}
+.understood .lbl{font:600 .7rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-right:.3rem}
+.chip{display:inline-flex;gap:.35rem;align-items:center;font-size:.86rem;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:.25rem .7rem}
+.chip i{font-style:normal;font:600 .66rem var(--mono);text-transform:uppercase;color:var(--mute)}
+.chip.warn{border-color:var(--threat);color:var(--threat)}
+.onetap{background:var(--deep);color:var(--on-deep);border-radius:24px;padding:1.4rem 1.5rem;display:flex;flex-wrap:wrap;gap:1rem 1.5rem;align-items:center;justify-content:space-between}
+.onetap h3{font-size:1.35rem;display:flex;gap:.5rem;align-items:center}
+.onetap h3 .icon{color:var(--marigold)}
+.onetap p{color:var(--on-deep-mute);font-size:.92rem;max-width:52ch;margin-top:.3rem}
+.onetap .btn.gold{font-size:1.08rem;padding:1rem 1.6rem}
+.hour{flex-basis:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem;margin-top:.4rem}
+.hour div{background:var(--deep-2);border-radius:16px;padding:1rem;display:grid;gap:.5rem;align-content:start;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+.hour b{font:800 1.4rem var(--display);color:var(--marigold)}
+.hour p{color:var(--on-deep);margin:0;font-size:.92rem}
+.hour .btn{justify-self:start}
+@media (max-width:720px){.hour{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -409,6 +431,8 @@ html.helper .composer textarea{font-size:1.2rem}
   <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7.5 14.5l3.5-4 3 2.5 4-6"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></symbol>
   <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/></symbol>
   <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.5 3.5 5.5 3.5 8.5s-1 6-3.5 8.5c-2.5-2.5-3.5-5.5-3.5-8.5s1-6 3.5-8.5z"/></symbol>
 </svg>
 
@@ -495,6 +519,12 @@ html.helper .composer textarea{font-size:1.2rem}
     <form class="composer" id="flip-form">
       <label for="msg" class="small muted" style="display:block;margin:0 0 .5rem .2rem;font-weight:700" data-i18n="msgLabel">Their message</label>
       <textarea id="msg" placeholder="Paste a WhatsApp message or SMS, or write what was said on a call"></textarea>
+      <div class="inputs">
+        <button type="button" class="in-btn" id="mic-btn" aria-pressed="false"><svg class="icon"><use href="#i-mic"/></svg><span data-i18n="speak">Speak it</span></button>
+        <label class="in-btn" for="shot-in"><svg class="icon"><use href="#i-image"/></svg><span data-i18n="shot">Upload a screenshot</span></label>
+        <input type="file" id="shot-in" accept="image/*" hidden>
+        <span class="in-status small muted" id="in-status" aria-live="polite"></span>
+      </div>
       <div class="row">
         <div class="examples" aria-label="Examples">
           <button type="button" data-ex="0"><svg class="icon"><use href="#i-image"/></svg>Photo threat</button>
