@@ -106,7 +106,16 @@ function setHelper(on) {
 }
 $('#go-diy').addEventListener('click', () => { setHelper(false); $('#flip').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => $('#msg').focus({ preventScroll: true }), 500); });
 $('#go-helper').addEventListener('click', () => { setHelper(true); $('#flip').scrollIntoView({ behavior: 'smooth' }); toast('Helper mode on: bigger text and simple steps'); });
-$('#go-callback').addEventListener('click', () => openDlg('dlg-call'));
+$('#go-callback').addEventListener('click', () => { state.callReason = 'threats'; openDlg('dlg-call'); });
+function leakText() {
+  const pf = $('#lk-platform').value, link = $('#lk-link').value.trim();
+  return `To: ${pf} Grievance Officer\nSubject: Urgent removal: morphed intimate image of me, shared without consent\n\nI am the person shown in ${link ? 'this post: ' + link : 'an image posted on your platform'}. The image is fake (morphed) and was shared without my consent by people harassing me over an illegal loan app.\n\nUnder Rule 3(2)(b) of the IT Rules, 2021 (as amended), please remove it, and block copies of it, within the time the rules require. I can confirm my identity on request.\n\nDate: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+}
+function renderLeak() { $('#lk-out').value = leakText(); }
+$('#lk-platform').addEventListener('change', renderLeak); $('#lk-link').addEventListener('input', renderLeak);
+$('#lk-copy').addEventListener('click', () => copyText(leakText(), $('#lk-out'), 'Request copied. Paste it into the platform’s report form.'));
+$('#go-leak').addEventListener('click', () => { renderLeak(); openDlg('dlg-leak'); });
+$('#lk-call').addEventListener('click', () => { state.callReason = 'photo'; $('#dlg-leak').close(); $('#cb-woman').checked = true; openDlg('dlg-call'); });
 $('#call-form').addEventListener('submit', async e => {
   e.preventDefault();
   const phone = $('#cb-phone').value.replace(/\D/g, '').slice(-10);
@@ -115,7 +124,7 @@ $('#call-form').addEventListener('submit', async e => {
   const when = $('input[name=cb-time]:checked').value, langName = { en: 'English', ta: 'Tamil', hi: 'Hindi' }[state.lang];
   let saved = false;
   if (state.live.db && state.live.uid) {
-    try { await state.live.db.doc('callbacks/' + state.live.uid).set({ name: $('#cb-name').value.trim().slice(0, 40), phone, lang: state.lang, when, ts: Date.now() }); saved = true; } catch (x) { saved = false; }
+    try { await state.live.db.doc('callbacks/' + state.live.uid).set({ name: $('#cb-name').value.trim().slice(0, 40), phone, lang: state.lang, when, woman: $('#cb-woman').checked, reason: state.callReason || 'threats', ts: Date.now() }); saved = true; } catch (x) { saved = false; }
   }
   $('#call-body').innerHTML = saved
     ? `<div class="sent"><span class="big">${ico('i-check')}</span><h3>Request sent</h3><p>A volunteer will call <b>${esc(LS.maskPhone(phone))}</b> in the ${esc(when.toLowerCase())}, in ${esc(langName)}. Meanwhile, don’t pay and don’t reply to them.</p><p class="small muted">They will never ask you for money, an OTP or bank details.</p><button class="btn ghost sm" type="button" data-close>Close</button></div>`
@@ -127,7 +136,7 @@ async function startInbox(user) {
   state.live.db.collection('callbacks').onSnapshot(snap => {
     const rows = snap.docs.map(d => d.data() || {}).sort((x, y) => (y.ts || 0) - (x.ts || 0));
     box.innerHTML = `<h3><span>Volunteer inbox (only you see this)</span><span class="muted small">${rows.length} request${rows.length === 1 ? '' : 's'}</span></h3>` +
-      (rows.length ? `<ul>${rows.map(r => `<li><b>${esc(r.name || 'No name')}</b><span>${esc(String(r.phone || ''))}</span><span>${esc({ en: 'English', ta: 'Tamil', hi: 'Hindi' }[r.lang] || '')}</span><span>${esc(r.when || '')}</span><span class="muted">${r.ts ? esc(new Date(r.ts).toLocaleString('en-IN')) : ''}</span></li>`).join('')}</ul>` : '<p class="small muted" style="margin-top:.4rem">No call-back requests yet.</p>');
+      (rows.length ? `<ul>${rows.map(r => `<li><b>${esc(r.name || 'No name')}</b><span>${esc(String(r.phone || ''))}</span><span>${esc({ en: 'English', ta: 'Tamil', hi: 'Hindi' }[r.lang] || '')}</span><span>${esc(r.when || '')}</span>${r.woman ? '<span>Woman volunteer</span>' : ''}${r.reason === 'photo' ? '<b style="color:var(--threat)">Leaked photo</b>' : ''}<span class="muted">${r.ts ? esc(new Date(r.ts).toLocaleString('en-IN')) : ''}</span></li>`).join('')}</ul>` : '<p class="small muted" style="margin-top:.4rem">No call-back requests yet.</p>');
   }, () => { box.hidden = true; });
 }
 

@@ -128,7 +128,7 @@ s = new(BG_INK); eyebrow(s, 'HOW IT WORKS'); title(s, 'Five stages, one loop')
 st = [('Prevent', 'Community', ['Real-cost camps at SHGs and colleges', 'Fair small loans via SHGs and microfinance']),
       ('Detect', 'Website', ['Link reports by UPI ID, number, wording', 'Public only after 3 people report']),
       ('Protect', 'Website + NGO', ['Flip each threat into fact and law', 'Warn contacts in 3 languages']),
-      ('Respond', 'Community', ['Legal-aid clinics help file', 'One bundled case per operator']),
+      ('Respond', 'Community', ['Legal-aid clinics help file', 'Leaked-photo takedowns by NGO counsellors']),
       ('Reform', 'Community', ['Public dashboard of operators', 'Reports to app stores, payment apps'])]
 W = 2.05
 for i, (n, who, items) in enumerate(st):
@@ -173,6 +173,21 @@ text(s, 1.25, 5.75, 5.3, 1.05, (('No smartphone at all? ', {'bold': True, 'color
 w, h = picture(s, IMG + 'n_start.jpg', 7.0, 2.15, w=5.25)
 text(s, 7.0, 2.15 + h + 0.15, 5.25, 0.4, 'The first choice on the website.', size=12, color=MUTE)
 notes(s, 'The first people trapped are those least used to smartphones. Language, read-aloud and helper mode are in the website now; the help desks at SHG meetings reach people with no smartphone at all. Next step: a WhatsApp number they can simply forward messages to.')
+
+
+# ---------------- 12c. If a morphed photo leaks ----------------
+s = new(BG_BLUE); eyebrow(s, 'WHEN A MORPHED PHOTO LEAKS'); title(s, 'Evidence is not enough. Dignity comes first.')
+cols = [('Before it spreads', ORG, ['Contact Shield warns family first: “any photo of me is fake”', 'The photo arrives already discredited']),
+        ('Within hours', RED, ['Ready takedown request for each platform', 'Platforms must act within 2 hours of a complaint (IT Rules, 2026)', 'StopNCII fingerprint blocks re-uploads; the image never leaves the phone']),
+        ('For the person', '4EA8DE', ['An NGO counsellor does the takedowns for them', 'A woman volunteer on request', 'They never have to see it again'])]
+for i, (h, c, items) in enumerate(cols):
+    x = 1.0 + i * 3.8
+    box(s, x, 2.15, 3.5, 2.75, CARD, c)
+    text(s, x + 0.25, 2.35, 3.0, 0.45, h, size=18, color=c, bold=True)
+    text(s, x + 0.25, 2.95, 3.0, 2.6, ['• ' + t for t in items], size=13.5, color='C9C9D3')
+box(s, 1.0, 5.25, 11.1, 0.8, '0A2E2C', '0B5D5A')
+text(s, 1.3, 5.25, 10.6, 0.8, (('On the website: ', {'bold': True, 'color': ORG}), ('“This photo is fake. Making it is the crime, not being in it.” One button opens the whole checklist.', {})), size=15, anchor=MSO_ANCHOR.MIDDLE)
+notes(s, 'Answer to "isn’t the leaked photo still humiliating?": yes, so the response is takedown plus support, not just evidence. Warn contacts first, take it down within hours, block re-uploads, and let a counsellor do it so the victim never sees it again. WhatsApp copies cannot be deleted from other phones, which is why the early warning matters most.')
 
 # ---------------- 13. Novelty ----------------
 s = new(BG_WARM); eyebrow(s, 'NOVELTY'); title(s, 'What is new in our approach')

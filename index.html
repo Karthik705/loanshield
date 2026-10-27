@@ -440,6 +440,25 @@ html.helper .composer textarea{font-size:1.2rem}
 .inbox li{display:flex;flex-wrap:wrap;gap:.3rem 1rem;background:var(--bg);border-radius:10px;padding:.5rem .7rem}
 .sent{display:grid;gap:.8rem;justify-items:start}
 .sent .big{width:56px;height:56px;border-radius:50%;background:var(--teal);color:var(--on-teal);display:grid;place-items:center}
+
+/* leaked photo */
+.leak-strip{display:flex;align-items:center;gap:1rem;width:100%;text-align:left;font:inherit;cursor:pointer;background:var(--threat-soft);color:var(--ink);border:1.5px solid var(--threat);border-radius:20px;padding:1rem 1.2rem;margin-bottom:1.2rem;transition:transform .15s}
+.leak-strip:hover{transform:translateY(-1px)}
+.leak-strip .ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--threat);color:#fff;flex:none}
+.leak-strip b{display:block;font:800 1.05rem var(--display)}
+.leak-strip small{display:block;color:var(--mute);font-size:.88rem}
+.leak-strip .go{margin-left:auto;font-weight:700;color:var(--threat);white-space:nowrap}
+@media (max-width:560px){.leak-strip{flex-wrap:wrap}.leak-strip .go{margin-left:0}}
+.calm{background:var(--teal);color:var(--on-teal);border-radius:16px;padding:1rem 1.1rem;display:grid;gap:.3rem}
+.calm b{font:800 1.1rem var(--display)}
+.calm span{opacity:.9;font-size:.92rem}
+.leak-steps{list-style:none;padding:0;margin:0;display:grid;gap:1rem}
+.leak-steps li{display:grid;grid-template-columns:32px minmax(0,1fr);gap:.8rem}
+.leak-steps .n{width:32px;height:32px;border-radius:50%;background:var(--marigold);color:#2A1E05;display:grid;place-items:center;font:800 .9rem var(--display)}
+.leak-steps li>div{display:grid;gap:.45rem;justify-items:start}
+.leak-steps p{font-size:.9rem;color:var(--mute)}
+.leak-steps .fields,.leak-steps textarea{width:100%}
+.field select{width:100%;font:1rem var(--body);padding:.65rem .8rem;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -515,6 +534,7 @@ html.helper .composer textarea{font-size:1.2rem}
     <span class="eyebrow">Start here</span>
     <h2 data-i18n="startH2">How would you like to do this?</h2>
   </div>
+  <button type="button" class="leak-strip" id="go-leak"><span class="ic"><svg class="icon"><use href="#i-image"/></svg></span><span><b>Has a photo of you already been shared?</b><small>Urgent help to get it taken down. You never upload the photo.</small></span><span class="go">Get help now →</span></button>
   <div class="paths">
     <article class="path diy">
       <span class="ptag">Do it yourself</span>
@@ -629,6 +649,24 @@ html.helper .composer textarea{font-size:1.2rem}
   <p style="flex-basis:100%;font-size:.8rem">Sample app names, UPI IDs and numbers are fictional. The law mapping is a guide, not legal advice. <span id="val-line"></span></p>
 </div></footer>
 
+<dialog id="dlg-leak" aria-labelledby="l-title">
+  <div class="dlg-head"><h3 id="l-title"><span class="ic"><svg class="icon"><use href="#i-shield"/></svg></span>If a photo of you was shared</h3><button class="x" type="button" data-close aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></div>
+  <div class="dlg-body">
+    <div class="calm"><b>This photo is fake. Making it is the crime, not being in it.</b><span>You don’t have to look at it again, and you don’t have to do this alone.</span></div>
+    <ol class="leak-steps">
+      <li><span class="n">1</span><div><b>Don’t open it, reply or pay.</b><p>Paying never makes them delete it. It only brings new demands.</p></div></li>
+      <li><span class="n">2</span><div><b>Tell your contacts it’s fake.</b><p>People believe you when they hear it from you first.</p><button class="btn primary sm" type="button" data-open="dlg-shield">Write the warning</button></div></li>
+      <li><span class="n">3</span><div><b>Ask each platform to take it down.</b><p>Platforms must act within <b>2 hours</b> of a complaint about morphed intimate images (IT Rules, as amended in 2026).</p>
+        <div class="fields"><div class="field"><label for="lk-platform">Where is it?</label><select id="lk-platform"><option>Instagram</option><option>Facebook</option><option>X (Twitter)</option><option>YouTube</option><option>Telegram</option><option>Another website</option></select></div><div class="field"><label for="lk-link">Link to the post (optional)</label><input id="lk-link" placeholder="https://"></div></div>
+        <textarea class="out" id="lk-out" readonly style="min-height:150px;font-family:var(--body)"></textarea>
+        <div class="btns"><button class="btn ghost sm" type="button" id="lk-copy"><svg class="icon"><use href="#i-copy"/></svg>Copy request</button></div>
+        <p class="small muted">On WhatsApp nobody can delete it from other phones: report and block the sender, and ask your contacts to delete it and not forward it.</p></div></li>
+      <li><span class="n">4</span><div><b>Stop it being uploaded again.</b><p><a href="https://stopncii.org" target="_blank" rel="noopener">StopNCII.org</a> makes a fingerprint of the image on your own phone. The image never leaves it, and partner platforms block matching copies.</p></div></li>
+      <li><span class="n">5</span><div><b>Let a counsellor do it for you.</b><p>A trained NGO volunteer handles the takedowns, so you never have to see it again. You can ask for a woman volunteer.</p><button class="btn primary sm" type="button" id="lk-call">Call me back</button></div></li>
+    </ol>
+  </div>
+</dialog>
+
 <dialog id="dlg-call" aria-labelledby="c-title">
   <div class="dlg-head"><h3 id="c-title"><span class="ic"><svg class="icon"><use href="#i-phone"/></svg></span>Ask a volunteer to call you</h3><button class="x" type="button" data-close aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></div>
   <div class="dlg-body" id="call-body">
@@ -640,6 +678,7 @@ html.helper .composer textarea{font-size:1.2rem}
       </div>
       <div><p style="font-weight:700;font-size:.86rem;margin-bottom:.4rem">Best time to call</p>
         <div class="radios" role="radiogroup" aria-label="Best time"><label><input type="radio" name="cb-time" value="Morning" checked><span>Morning</span></label><label><input type="radio" name="cb-time" value="Afternoon"><span>Afternoon</span></label><label><input type="radio" name="cb-time" value="Evening"><span>Evening</span></label></div></div>
+      <label class="check" style="margin:0"><input type="checkbox" id="cb-woman"><span>I’d prefer a woman volunteer</span></label>
       <p class="small" id="cb-error" style="color:var(--threat)"></p>
       <div class="btns"><button class="btn primary" type="submit">Request a call</button></div>
       <p class="small muted">Our volunteers will never ask you for money, an OTP or your bank details.</p>
@@ -1202,7 +1241,16 @@ function setHelper(on) {
 }
 $('#go-diy').addEventListener('click', () => { setHelper(false); $('#flip').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => $('#msg').focus({ preventScroll: true }), 500); });
 $('#go-helper').addEventListener('click', () => { setHelper(true); $('#flip').scrollIntoView({ behavior: 'smooth' }); toast('Helper mode on: bigger text and simple steps'); });
-$('#go-callback').addEventListener('click', () => openDlg('dlg-call'));
+$('#go-callback').addEventListener('click', () => { state.callReason = 'threats'; openDlg('dlg-call'); });
+function leakText() {
+  const pf = $('#lk-platform').value, link = $('#lk-link').value.trim();
+  return `To: ${pf} Grievance Officer\nSubject: Urgent removal: morphed intimate image of me, shared without consent\n\nI am the person shown in ${link ? 'this post: ' + link : 'an image posted on your platform'}. The image is fake (morphed) and was shared without my consent by people harassing me over an illegal loan app.\n\nUnder Rule 3(2)(b) of the IT Rules, 2021 (as amended), please remove it, and block copies of it, within the time the rules require. I can confirm my identity on request.\n\nDate: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+}
+function renderLeak() { $('#lk-out').value = leakText(); }
+$('#lk-platform').addEventListener('change', renderLeak); $('#lk-link').addEventListener('input', renderLeak);
+$('#lk-copy').addEventListener('click', () => copyText(leakText(), $('#lk-out'), 'Request copied. Paste it into the platform’s report form.'));
+$('#go-leak').addEventListener('click', () => { renderLeak(); openDlg('dlg-leak'); });
+$('#lk-call').addEventListener('click', () => { state.callReason = 'photo'; $('#dlg-leak').close(); $('#cb-woman').checked = true; openDlg('dlg-call'); });
 $('#call-form').addEventListener('submit', async e => {
   e.preventDefault();
   const phone = $('#cb-phone').value.replace(/\D/g, '').slice(-10);
@@ -1211,7 +1259,7 @@ $('#call-form').addEventListener('submit', async e => {
   const when = $('input[name=cb-time]:checked').value, langName = { en: 'English', ta: 'Tamil', hi: 'Hindi' }[state.lang];
   let saved = false;
   if (state.live.db && state.live.uid) {
-    try { await state.live.db.doc('callbacks/' + state.live.uid).set({ name: $('#cb-name').value.trim().slice(0, 40), phone, lang: state.lang, when, ts: Date.now() }); saved = true; } catch (x) { saved = false; }
+    try { await state.live.db.doc('callbacks/' + state.live.uid).set({ name: $('#cb-name').value.trim().slice(0, 40), phone, lang: state.lang, when, woman: $('#cb-woman').checked, reason: state.callReason || 'threats', ts: Date.now() }); saved = true; } catch (x) { saved = false; }
   }
   $('#call-body').innerHTML = saved
     ? `<div class="sent"><span class="big">${ico('i-check')}</span><h3>Request sent</h3><p>A volunteer will call <b>${esc(LS.maskPhone(phone))}</b> in the ${esc(when.toLowerCase())}, in ${esc(langName)}. Meanwhile, don’t pay and don’t reply to them.</p><p class="small muted">They will never ask you for money, an OTP or bank details.</p><button class="btn ghost sm" type="button" data-close>Close</button></div>`
@@ -1223,7 +1271,7 @@ async function startInbox(user) {
   state.live.db.collection('callbacks').onSnapshot(snap => {
     const rows = snap.docs.map(d => d.data() || {}).sort((x, y) => (y.ts || 0) - (x.ts || 0));
     box.innerHTML = `<h3><span>Volunteer inbox (only you see this)</span><span class="muted small">${rows.length} request${rows.length === 1 ? '' : 's'}</span></h3>` +
-      (rows.length ? `<ul>${rows.map(r => `<li><b>${esc(r.name || 'No name')}</b><span>${esc(String(r.phone || ''))}</span><span>${esc({ en: 'English', ta: 'Tamil', hi: 'Hindi' }[r.lang] || '')}</span><span>${esc(r.when || '')}</span><span class="muted">${r.ts ? esc(new Date(r.ts).toLocaleString('en-IN')) : ''}</span></li>`).join('')}</ul>` : '<p class="small muted" style="margin-top:.4rem">No call-back requests yet.</p>');
+      (rows.length ? `<ul>${rows.map(r => `<li><b>${esc(r.name || 'No name')}</b><span>${esc(String(r.phone || ''))}</span><span>${esc({ en: 'English', ta: 'Tamil', hi: 'Hindi' }[r.lang] || '')}</span><span>${esc(r.when || '')}</span>${r.woman ? '<span>Woman volunteer</span>' : ''}${r.reason === 'photo' ? '<b style="color:var(--threat)">Leaked photo</b>' : ''}<span class="muted">${r.ts ? esc(new Date(r.ts).toLocaleString('en-IN')) : ''}</span></li>`).join('')}</ul>` : '<p class="small muted" style="margin-top:.4rem">No call-back requests yet.</p>');
   }, () => { box.hidden = true; });
 }
 
