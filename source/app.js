@@ -255,6 +255,7 @@ function copyText(t, el, msg) {
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(() => toast(msg || 'Copied'), fail); else fail();
 }
 
+if ($('#check-form')) {
 /* ---------------- Before you borrow ---------------- */
 LS.RED_FLAG_QUESTIONS.forEach(q => $('#c-questions').insertAdjacentHTML('beforeend', `<label class="check"><input type="checkbox" value="${q.id}"><span>${esc(q.q)}</span></label>`));
 function runCheck(e) {
@@ -282,14 +283,16 @@ function runCheck(e) {
 ['#c-promised', '#c-received', '#c-repay', '#c-days'].forEach(id => $(id).addEventListener('input', runCheck));
 $('#c-questions').addEventListener('change', runCheck);
 $('#check-form').addEventListener('submit', e => { e.preventDefault(); runCheck(); });
+runCheck();
 
+}
 /* ---------------- system loop ---------------- */
 const STAGES = [
-  { n: 'Prevent', icon: 'i-calc', app: false, who: 'SHGs, MFIs, student volunteers', p: 'Remove the reason people borrow from scam apps.', items: ['Truth Check camps at SHG meetings and colleges', 'Fair small loans from SHGs and microfinance', 'WhatsApp / IVR lender check for basic phones'] },
-  { n: 'Detect', icon: 'i-search', app: true, who: 'This app + victims’ reports', p: 'Find the operator behind the app names.', items: ['Links reports by UPI ID, number and wording', 'Public only after 3 different people report it', 'Sent to MeitY, Google Play and telecoms as one case'] },
-  { n: 'Protect', icon: 'i-shield', app: true, who: 'This app + NGO counsellors', p: 'Answer each threat with the facts, in the moment.', items: ['Flips every threat into the fact and the law', 'Contact warning in English, Hindi and Tamil', 'Counsellor callback for severe cases'] },
-  { n: 'Respond', icon: 'i-scale', app: false, who: 'Legal-aid clinics, cyber cells', p: 'Turn sealed evidence into a filed case.', items: ['Law-college clinics help victims file at 1930', 'Victims of one operator filed together', 'Hash list supports a Sec. 63 BSA certificate'] },
-  { n: 'Reform', icon: 'i-chart', app: false, who: 'Students, RBI, MeitY, Google Play', p: 'Make the numbers public so the system responds.', items: ['Public dashboard of operators and response times', 'Quarterly brief to regulators', 'Hotspots decide the next Prevent camps'] }
+  { n: 'Prevent', icon: 'i-calc', app: false, who: 'SHGs, microfinance groups, student volunteers', p: 'Remove the reason people borrow from scam apps.', items: ['Real-cost camps at SHG meetings and colleges', 'Fair small loans through SHGs and microfinance groups', 'WhatsApp lender check for basic phones'] },
+  { n: 'Detect', icon: 'i-search', app: true, who: 'This app + victims’ own reports', p: 'Find the operator behind the app names.', items: ['Links reports by UPI ID, number and wording', 'Public only after 3 different people report it', 'Operator files sent to app stores and payment apps'] },
+  { n: 'Protect', icon: 'i-shield', app: true, who: 'This app + cyber-safety NGO counsellors', p: 'Answer each threat with the facts, in the moment.', items: ['Flips every threat into the fact and the law', 'Contact warning in English, Hindi and Tamil', 'NGO counsellor callback for severe cases'] },
+  { n: 'Respond', icon: 'i-scale', app: false, who: 'Law-college legal-aid clinics, pro-bono lawyers', p: 'Turn sealed evidence into a filed case.', items: ['Clinics help victims file their complaint', 'Victims of one operator file together', 'Hash list proves the evidence was not edited'] },
+  { n: 'Reform', icon: 'i-chart', app: false, who: 'Students, media, researchers', p: 'Make the numbers public so platforms respond.', items: ['Public dashboard of operators and response times', 'Twice-yearly public report', 'Hotspots decide the next Prevent camps'] }
 ];
 const loop = $('#loop');
 STAGES.forEach((s, i) => {
@@ -393,7 +396,6 @@ async function startLive() {
 
 /* boot */
 renderGraph();
-runCheck();
 $('#msg').value = EXAMPLES[0];
 flip(EXAMPLES[0]);
 startLive();

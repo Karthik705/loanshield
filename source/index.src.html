@@ -152,6 +152,7 @@ section.dark .eyebrow{color:var(--marigold)}
 .pill.clear{background:var(--teal-soft);color:var(--teal)}
 .hint{font-size:.84rem;color:var(--mute);display:flex;align-items:center;gap:.4rem}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
+.cards .fcard,.cards .inner{height:100%}
 .cards .face{padding:1.1rem 1.15rem 1.2rem;display:flex;flex-direction:column;gap:.55rem}
 .cards .front{background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 24px -18px rgba(0,0,0,.4)}
 .cards .back{background:var(--teal);color:var(--on-teal)}
@@ -336,6 +337,22 @@ textarea.out{width:100%;min-height:200px;font:.84rem/1.5 var(--mono);border-radi
 .toast.show{opacity:1;transform:translate(-50%,0)}
 @keyframes rise{from{opacity:.001;transform:translateY(14px)}}
 .rise{animation:rise .5s ease both}
+
+/* novelty compare */
+section.alt2{background:var(--surface);border-block:1px solid var(--line)}
+.vs-grid{display:grid;gap:1rem;max-width:980px;margin:0 auto}
+.vs-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto minmax(0,1.2fr);gap:1.2rem;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:1.2rem 1.4rem}
+.num-big{font:800 2.6rem/1 var(--display);color:var(--marigold);width:2.2rem;text-align:center}
+.vs-row .lbl{display:block;font:600 .68rem var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem}
+.vs-row .old{color:var(--mute);font-size:.95rem}
+.vs-row .old .lbl{color:var(--mute)}
+.vs-row .old p{text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--threat) 60%,transparent)}
+.vs-row .to{font:800 1.6rem var(--display);color:var(--teal)}
+.vs-row .newc{background:var(--teal);color:var(--on-teal);border-radius:16px;padding:1rem 1.15rem}
+.vs-row .newc .lbl{color:var(--marigold)}
+.vs-row .newc h3{font-size:1.25rem}
+.vs-row .newc p{font-size:.92rem;opacity:.9;margin-top:.2rem}
+@media (max-width:760px){.vs-row{grid-template-columns:auto minmax(0,1fr)}.vs-row .to{display:none}.vs-row .newc{grid-column:1/-1}}
 </style>
 </head>
 <body>
@@ -367,20 +384,20 @@ textarea.out{width:100%;min-height:200px;font:.84rem/1.5 var(--mono);border-radi
 <header class="top"><div class="wrap">
   <a class="logo" href="#top"><span class="mark"><svg class="icon"><use href="#i-shield"/></svg></span>LoanShield</a>
   <nav class="links" aria-label="Sections">
-    <a href="#flip">Flip a threat</a><a href="#borrow">Check a loan</a><a href="#system">How it works</a><a href="#map">Operator map</a>
+    <a href="#new">What’s new</a><a href="#flip">Try it</a><a href="#map">Follow the money</a><a href="#system">How it works</a>
   </nav>
-  <a class="help-pill" href="#help"><svg class="icon"><use href="#i-phone"/></svg>Get help</a>
+  <a class="help-pill" href="#flip"><svg class="icon"><use href="#i-flip"/></svg>Try it</a>
 </div></header>
 
 <main>
 <section class="hero" id="top"><div class="wrap">
   <div>
-    <span class="eyebrow">For anyone threatened by a loan app</span>
+    <span class="eyebrow">A new answer to loan-app harassment</span>
     <h1>Their threats are <span class="flipword">your evidence.</span></h1>
-    <p class="lede">Every scary message flips into the facts, the law it breaks, and proof against the people who sent it.</p>
+    <p class="lede">Other tools try to block the threats. LoanShield turns each one into a fact for the victim and evidence against the operator.</p>
     <div class="ctas">
       <a class="btn gold" href="#flip"><svg class="icon"><use href="#i-flip"/></svg>Flip a threat</a>
-      <a class="btn line" href="#borrow"><svg class="icon"><use href="#i-calc"/></svg>Check a loan first</a>
+      <a class="btn line" href="#new">What’s new</a>
     </div>
     <div class="trust">
       <span><svg class="icon"><use href="#i-lock"/></svg>Stays on your phone</span>
@@ -402,15 +419,22 @@ textarea.out{width:100%;min-height:200px;font:.84rem/1.5 var(--mono);border-radi
   </div>
 </div></section>
 
-<div class="stats-band"><div class="wrap"><div class="stat-row">
-  <div class="stat"><b>87</b><span>illegal loan apps blocked by MeitY in Dec 2025</span></div>
-  <div class="stat"><b>2,000+</b><span>loan apps removed from the Play Store</span></div>
-  <div class="stat"><b>67.8%</b><span>of cybercrime complaints are financial fraud</span></div>
-</div></div></div>
 
-<section class="band" id="flip"><div class="wrap">
+<section class="band" id="new"><div class="wrap">
   <div class="sec-head center">
-    <span class="eyebrow">Stage 3 · Protect</span>
+    <span class="eyebrow">What’s new</span>
+    <h2>Three things no existing tool does.</h2>
+  </div>
+  <div class="vs-grid">
+    <div class="vs-row"><span class="num-big">1</span><div class="old"><span class="lbl">Usual approach</span><p>Spam blockers hide the message. The victim is still scared.</p></div><span class="to" aria-hidden="true">→</span><div class="newc"><span class="lbl">LoanShield</span><h3>Flips fear into facts</h3><p>Each threat is answered with what is actually true and the law it breaks.</p></div></div>
+    <div class="vs-row"><span class="num-big">2</span><div class="old"><span class="lbl">Usual approach</span><p>More threats means more fear, and each victim complains alone.</p></div><span class="to" aria-hidden="true">→</span><div class="newc"><span class="lbl">LoanShield</span><h3>Every threat builds the case</h3><p>Messages are sealed as tamper-proof evidence, and contacts are warned first.</p></div></div>
+    <div class="vs-row"><span class="num-big">3</span><div class="old"><span class="lbl">Usual approach</span><p>One app is reported. It comes back next week under a new name.</p></div><span class="to" aria-hidden="true">→</span><div class="newc"><span class="lbl">LoanShield</span><h3>Follows the money</h3><p>Reports that share a UPI ID or number join into one operator, public after 3 people.</p></div></div>
+  </div>
+</div></section>
+
+<section class="band alt2" id="flip"><div class="wrap">
+  <div class="sec-head center">
+    <span class="eyebrow">Try it</span>
     <h2>Paste what they sent. Watch it flip.</h2>
   </div>
   <div class="tool">
@@ -431,60 +455,13 @@ textarea.out{width:100%;min-height:200px;font:.84rem/1.5 var(--mono);border-radi
   </div>
 </div></section>
 
-<section class="band" id="borrow" style="padding-top:0"><div class="wrap">
-  <div class="borrow">
-    <div>
-      <div class="sec-head" style="margin-bottom:1.5rem">
-        <span class="eyebrow">Stage 1 · Prevent</span>
-        <h2>Before you borrow, see the real price.</h2>
-        <p class="muted">Move the sliders to match what the app shows you.</p>
-      </div>
-      <form class="sliders" id="check-form">
-        <div class="sl"><label for="c-promised">Loan shown <output id="o-promised"></output></label><input type="range" id="c-promised" min="1000" max="50000" step="500" value="5000"></div>
-        <div class="sl"><label for="c-received">Money that reaches you <output id="o-received"></output></label><input type="range" id="c-received" min="500" max="50000" step="100" value="3500"></div>
-        <div class="sl"><label for="c-repay">You must repay <output id="o-repay"></output></label><input type="range" id="c-repay" min="500" max="80000" step="100" value="5000"></div>
-        <div class="sl"><label for="c-days">Within <output id="o-days"></output></label><input type="range" id="c-days" min="3" max="365" step="1" value="7"></div>
-        <details class="flags-q"><summary>Anything else about the app?</summary><div id="c-questions"></div></details>
-      </form>
-    </div>
-    <div class="tag-card" id="check-out"></div>
-  </div>
-</div></section>
 
-<section class="band dark" id="system"><div class="wrap">
-  <div class="sec-head center">
-    <span class="eyebrow">The LoanShield system</span>
-    <h2>The app is one part. People do the rest.</h2>
-    <p class="muted">Five stages run in a loop. Tap a stage.</p>
-  </div>
-  <div class="system">
-    <div>
-      <div class="loop" id="loop">
-        <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,.14)" stroke-width=".6" stroke-dasharray="1.5 1.5"/><path d="M50 12 a38 38 0 0 1 9 1.1" fill="none" stroke="#F2B33D" stroke-width=".8"/></svg>
-        <div class="hub"><div><b>One loop</b><span>Reform decides where Prevent goes next</span></div></div>
-      </div>
-      <div class="legend"><span><i class="app"></i>Carried by the app</span><span><i></i>Carried by people and partners</span></div>
-    </div>
-    <div class="stage-panel" id="stage-panel" aria-live="polite"></div>
-  </div>
-</div></section>
 
-<section class="band" id="different"><div class="wrap">
-  <div class="sec-head center">
-    <span class="eyebrow">Why this is different</span>
-    <h2>Other tools block messages. This one fights back.</h2>
-  </div>
-  <div class="diff">
-    <article><span class="ic"><svg class="icon"><use href="#i-flip"/></svg></span><h3>Answers fear with facts</h3><p class="muted small">Each threat is shown next to what is actually true, so panic doesn’t push you to pay.</p><p class="vs">Spam filters: <b>“This may be spam.”</b></p></article>
-    <article><span class="ic"><svg class="icon"><use href="#i-lock"/></svg></span><h3>Every threat builds your case</h3><p class="muted small">Messages are sealed as evidence, matched to the law and linked to the operator.</p><p class="vs">Complaint portals: <b>one complaint, no proof.</b></p></article>
-    <article><span class="ic"><svg class="icon"><use href="#i-link"/></svg></span><h3>Follows the money</h3><p class="muted small">Rebranded apps that share a UPI ID become one operator, made public after 3 reports.</p><p class="vs">App bans: <b>one name at a time.</b></p></article>
-  </div>
-</div></section>
 
-<section class="band" id="map" style="padding-top:0"><div class="wrap">
+<section class="band" id="map"><div class="wrap">
   <div class="map-top">
     <div class="sec-head" style="margin:0">
-      <span class="eyebrow">Stage 2 · Detect</span>
+      <span class="eyebrow">Follow the money</span>
       <h2>One operator, many app names.</h2>
       <p class="muted small" id="graph-status"></p>
     </div>
@@ -494,12 +471,21 @@ textarea.out{width:100%;min-height:200px;font:.84rem/1.5 var(--mono);border-radi
   <div class="ops" id="ops"></div>
 </div></section>
 
-<section class="band dark" id="help"><div class="wrap">
-  <div class="sec-head"><span class="eyebrow">You are not alone</span><h2>Don’t pay to make it stop. Call.</h2></div>
-  <div class="help">
-    <div><b>1930</b><span>National cybercrime helpline. Or file at cybercrime.gov.in</span></div>
-    <div><b>14416</b><span>Tele-MANAS. Free mental health support, 24×7</span></div>
-    <div><b>112</b><span>If you feel unsafe right now</span></div>
+<section class="band dark" id="system"><div class="wrap">
+  <div class="sec-head center">
+    <span class="eyebrow">The LoanShield system</span>
+    <h2>The app is one part. People do the rest.</h2>
+    <p class="muted">Five stages run in a loop, funded and staffed with cyber-safety NGOs. Tap a stage.</p>
+  </div>
+  <div class="system">
+    <div>
+      <div class="loop" id="loop">
+        <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,.14)" stroke-width=".6" stroke-dasharray="1.5 1.5"/><path d="M50 12 a38 38 0 0 1 9 1.1" fill="none" stroke="#F2B33D" stroke-width=".8"/></svg>
+        <div class="hub"><div><b>LoanShield</b><span>Reform decides where Prevent goes next</span></div></div>
+      </div>
+      <div class="legend"><span><i class="app"></i>Carried by the app</span><span><i></i>Carried by people and partners</span></div>
+    </div>
+    <div class="stage-panel" id="stage-panel" aria-live="polite"></div>
   </div>
 </div></section>
 </main>
@@ -507,10 +493,10 @@ textarea.out{width:100%;min-height:200px;font:.84rem/1.5 var(--mono);border-radi
 <footer><div class="wrap">
   <a class="logo" href="#top"><span class="mark"><svg class="icon"><use href="#i-shield"/></svg></span>LoanShield</a>
   <div class="links2">
-    <button class="link-btn" type="button" data-deck="LoanShield_Final.pdf">Final presentation</button>
-    <button class="link-btn" type="button" data-deck="LoanShield_Part1_Problem.pdf">Part 1: the problem</button>
+    <button class="link-btn" type="button" data-deck="LoanShield_Final.pdf">Presentation (PDF)</button>
   </div>
-  <p style="flex-basis:100%">Social Work &amp; Sustainability · SDGs 1, 8, 10, 16 · [Team names] · [Course code] · [Institution]. Sample names, UPI IDs and numbers are fictional. The law mapping is a guide, not legal advice. <span id="val-line"></span></p>
+  <p style="flex-basis:100%">Social &amp; Sustainability project · SDGs 1, 8, 10 and 16 · Karthik J (23BRS1191) · K Annu Prasath (24BCE5409) · Pasunuru Sai Vivek (24BCE1239) · Srinidhi Vishal Chejarla (24BCE1493)</p>
+  <p style="flex-basis:100%;font-size:.8rem">Sample app names, UPI IDs and numbers are fictional. The law mapping is a guide, not legal advice. <span id="val-line"></span></p>
 </div></footer>
 
 <dialog id="dlg-shield" aria-labelledby="sh-title">
