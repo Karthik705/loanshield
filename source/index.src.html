@@ -7,28 +7,21 @@
 <meta name="description" content="Paste a threat from an illegal loan app. LoanShield flips each threat into the facts, names the law it breaks, and turns the message into evidence against the people who sent it.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B5D5A'/%3E%3Cpath d='M16 6l8 3v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V9z' fill='%23F2B33D'/%3E%3C/svg%3E">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
 /* Layout: a deep-teal hero with a live phone, then alternating light and dark bands; every section leads with one visual, words come second. */
 :root{
-  --bg:#F1F5F3; --surface:#FFFFFF; --sunk:#E4EBE8; --ink:#13201E; --mute:#5A6B66; --line:#D5DFDB;
-  --teal:#0B5D5A; --teal-2:#0E7A74; --teal-soft:#DCEEEA;
-  --deep:#0A2E2C; --deep-2:#0F3D3A; --on-deep:#EAF5F2; --on-deep-mute:#9CC3BB;
-  --marigold:#F2B33D; --marigold-soft:#FDF0D3;
-  --threat:#C2412F; --threat-soft:#FBE4DF; --ok:#2E7D4F;
-  --on-teal:#FFFFFF;
-  --display:'Bricolage Grotesque',ui-sans-serif,system-ui,sans-serif;
+  /* One deliberate dark theme, matching the presentation: warm black, red signal, orange warmth. */
+  --bg:#0E0807; --surface:#1A1313; --sunk:#241A19; --ink:#F4EEEC; --mute:#A89A98; --line:#3A2A28;
+  --teal:#E63946; --teal-2:#FF5A66; --teal-soft:#2A0E10;
+  --deep:#140B0A; --deep-2:#1F1312; --on-deep:#F4EEEC; --on-deep-mute:#A89A98;
+  --marigold:#F4A261; --marigold-soft:#2A1A10;
+  --threat:#FF6F6F; --threat-soft:#2E1416; --ok:#6BCB8F;
+  --on-teal:#FFFFFF; --paper:#F4EEEC; --paper-ink:#1A1313;
+  --display:'Poppins',ui-sans-serif,system-ui,sans-serif;
   --body:'Atkinson Hyperlegible',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
   --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
-  --r:18px;
+  --r:18px; color-scheme:dark;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0D1514;--surface:#15201F;--sunk:#1C2A28;--ink:#E8F0ED;--mute:#98AAA4;--line:#273634;
-  --teal:#5FC4BA;--teal-2:#7ED6CC;--teal-soft:#15302D;--deep:#071E1D;--deep-2:#0C2A28;--on-deep:#EAF5F2;--on-deep-mute:#8FB5AD;
-  --marigold-soft:#3A2F14;--threat:#F08A7C;--threat-soft:#3A1E1A;--ok:#6BCB8F;--on-teal:#0D1514;color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0D1514;--surface:#15201F;--sunk:#1C2A28;--ink:#E8F0ED;--mute:#98AAA4;--line:#273634;
-  --teal:#5FC4BA;--teal-2:#7ED6CC;--teal-soft:#15302D;--deep:#071E1D;--deep-2:#0C2A28;--on-deep:#EAF5F2;--on-deep-mute:#8FB5AD;
-  --marigold-soft:#3A2F14;--threat:#F08A7C;--threat-soft:#3A1E1A;--ok:#6BCB8F;--on-teal:#0D1514;color-scheme:dark}
 
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -459,6 +452,96 @@ html.helper .composer textarea{font-size:1.2rem}
 .leak-steps p{font-size:.9rem;color:var(--mute)}
 .leak-steps .fields,.leak-steps textarea{width:100%}
 .field select{width:100%;font:1rem var(--body);padding:.65rem .8rem;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+
+/* ===== warm-black theme overrides ===== */
+body{background:radial-gradient(900px 600px at 100% 0%,#1F0A0B,transparent 60%),var(--bg)}
+h1,h2,h3{letter-spacing:-.02em}
+.eyebrow{border:1px solid var(--teal);background:var(--teal-soft);padding:.4rem .75rem;border-radius:99px;color:var(--teal)}
+.eyebrow::before{display:none}
+.hero .eyebrow,section.dark .eyebrow{color:var(--teal);border-color:var(--teal)}
+header.top{background:color-mix(in srgb,var(--bg) 85%,transparent);border-bottom:1px solid var(--line)}
+body::before{background:var(--bg)}
+.logo .mark{background:var(--teal);color:#fff}
+.hero{background:radial-gradient(700px 520px at 82% 40%,#2A0E10,transparent 65%),transparent}
+.hero::after{display:none}
+.hero h1 .flipword{color:var(--teal)}
+.btn.gold,.help-pill{background:var(--teal);color:#fff;box-shadow:0 12px 28px -12px rgba(230,57,70,.8)}
+.btn.line{border-color:var(--line)}
+section.alt2{background:rgba(255,255,255,.015)}
+section.dark{background:var(--deep)}
+/* phone mockup: same as the title slide */
+.phone{background:#1A1414;box-shadow:0 40px 80px -30px rgba(0,0,0,.8),inset 0 0 0 2px #3A2A28}
+.screen{background:#201818;color:var(--ink)}
+.chat-top{background:#261B1A;color:var(--ink);border-bottom:1px solid #3A2A28}
+.chat-top .av{background:var(--teal)}
+.chat{background-image:none}
+.chat .stamp{background:#2A1F1E;color:var(--mute)}
+.chat .face.front{background:#2E1A1A;color:#EAD9DA;box-shadow:inset 0 0 0 1px #5A2630}
+.chat .face.back{background:var(--paper);color:var(--paper-ink)}
+.chat .face.front .tag{color:var(--teal)}.chat .face.back .tag{color:var(--teal)}
+.chat-foot{background:#2A1F1E;color:var(--mute)}
+.chat-foot .sh{background:var(--teal);color:#fff}
+/* fact cards: threat is dark, the fact is light */
+.cards .front{background:var(--surface);border-color:var(--line)}
+.cards .back{background:var(--paper);color:var(--paper-ink)}
+.cards .back .kind{color:var(--teal)}
+.cards .back .kind .ic{background:#F6D9DB;color:var(--teal)}
+.cards .back p{opacity:.85}
+.cards .back .law{background:#fff;border-color:#E2D4D2;color:var(--paper-ink)}
+.cards .front .kind .ic{background:var(--teal-soft);color:var(--teal)}
+.meter .track{background:linear-gradient(90deg,#3A2A28,#5A3A20,#5A2630)}
+.meter .track i{background:var(--teal);border-color:var(--bg)}
+.pill.watch{color:#2A1406}
+.steps li.on .node{box-shadow:0 0 0 6px var(--teal-soft)}
+.case,.composer,.op,.stats div,.vs-row,.easy article,.path.diy,.understood{background:var(--surface);border-color:var(--line)}
+.composer{box-shadow:0 30px 60px -40px rgba(230,57,70,.45)}
+.composer textarea{background:var(--sunk)}
+.in-btn{background:var(--teal-soft);color:#FF8A92}
+.examples button{background:transparent}
+.vs-row .newc{background:var(--teal-soft);color:var(--ink);box-shadow:inset 0 0 0 1px var(--teal)}
+.vs-row .newc .lbl{color:var(--teal)}
+.num-big{color:var(--teal)}
+.path.assist{background:linear-gradient(160deg,#2A0E10,#1A1313 70%);box-shadow:inset 0 0 0 1px #5A2630,0 30px 60px -36px rgba(230,57,70,.5)}
+.path.assist .ptag{background:var(--teal);color:#fff}
+.path.assist .pic{background:rgba(230,57,70,.16);color:#FF8A92}
+.pic{background:var(--sunk);color:var(--ink)}
+.ptag{background:var(--sunk);color:var(--ink)}
+.opt{background:var(--teal);color:#fff}
+.opt+.opt{background:var(--paper);color:var(--paper-ink)}
+.langs button[aria-pressed="true"],.path.assist .langs.big button[aria-pressed="true"]{background:var(--teal);color:#fff}
+.langs{background:#241A19}
+.no-phone{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+.no-phone .ic{background:var(--marigold);color:#2A1406}
+.leak-strip{background:#2E1416;border-color:#5A2630}
+.leak-strip .go{color:#FF8A92}
+.calm{background:var(--paper);color:var(--paper-ink)}
+.onetap{background:linear-gradient(160deg,#2A0E10,#1A1313 75%);box-shadow:inset 0 0 0 1px #5A2630}
+.onetap h3 .icon,.hour b{color:var(--marigold)}
+.hour div{background:#1A1313}
+.btn.gold.sm{box-shadow:none}
+.stage{background:#1F1312;box-shadow:inset 0 0 0 2px #3A2A28}
+.stage.app{background:var(--teal);color:#fff}
+.stage[aria-pressed="true"]{box-shadow:0 0 0 4px var(--marigold)}
+.stage-panel{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+.stage-panel .who.app{background:var(--teal);color:#fff}
+.hub{background:#1F1312}
+.legend i.app{background:var(--teal)}
+.diff .ic,.dlg-head h3 .ic{background:var(--teal-soft);color:#FF8A92}
+dialog{background:var(--surface);color:var(--ink);box-shadow:0 30px 80px -20px rgba(0,0,0,.8),inset 0 0 0 1px var(--line)}
+.dlg-head{background:var(--surface)}
+dialog::backdrop{background:rgba(8,4,4,.7)}
+.bubble-out{background:#201818}
+.bubble-out textarea{background:#2E1A1A;color:#EAD9DA}
+.op.you{border-color:var(--marigold);box-shadow:0 0 0 3px var(--marigold-soft)}
+.seg button[aria-pressed="true"]{background:var(--sunk);color:var(--ink)}
+.toast{background:var(--paper);color:var(--paper-ink)}
+.status.ok{background:#12261A}
+footer{background:var(--deep)}
+footer .link-btn{color:#FF8A92}
+.link-btn{color:#FF8A92}
+a{color:#FF8A92}
+.helper-steps{background:var(--marigold-soft);border-color:var(--marigold)}
+.inbox{border-color:var(--teal)}
 </style>
 </head>
 <body>
@@ -630,7 +713,7 @@ html.helper .composer textarea{font-size:1.2rem}
   <div class="system">
     <div>
       <div class="loop" id="loop">
-        <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,.14)" stroke-width=".6" stroke-dasharray="1.5 1.5"/><path d="M50 12 a38 38 0 0 1 9 1.1" fill="none" stroke="#F2B33D" stroke-width=".8"/></svg>
+        <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,.14)" stroke-width=".6" stroke-dasharray="1.5 1.5"/><path d="M50 12 a38 38 0 0 1 9 1.1" fill="none" stroke="#E63946" stroke-width=".8"/></svg>
         <div class="hub"><div><b>LoanShield</b><span>Reform decides where Prevent goes next</span></div></div>
       </div>
       <div class="legend"><span><i class="app"></i>Carried by the app</span><span><i></i>Carried by people and partners</span></div>
