@@ -371,17 +371,18 @@ notes(s, 'If asked "isn’t this a spam checker?": spam checkers block a number.
 
 # ================= 17. SDG impact =================
 s = frame('SDG IMPACT', 'How the solution serves the SDGs', 'tr')
-box(s, L, 2.15, 5.7, 4.45, '0C1C28', SDG[16], 1.5)
-tile(s, L + 0.35, 2.5, 16, SDG[16], 1.0, 28)
-text(s, L + 1.6, 2.5, 3.9, 1.0, [(('MAJOR SDG', {'color': '5FB0E8', 'size': 10, 'bold': True}),), (('Peace, Justice & Strong Institutions', {'bold': True, 'size': 15}),)], anchor=MIDDLE, gap=2)
-text(s, L + 0.35, 3.85, 5.0, 2.6, ['•  Access to justice: sealed evidence and legal-aid help', '•  Less fear: threats answered with facts', '•  Accountability: operators named, not just apps', '•  Privacy: checked on the phone, shared by consent'], size=12, color='C9D6E2', gap=8)
-for i, (n, h, b) in enumerate([(1, 'No Poverty', 'Fair SHG loans and real-cost checks break the debt trap.'), (8, 'Decent Work', 'Contact warnings keep threats away from employers.'), (10, 'Reduced Inequalities', 'Local languages and assisted help reach low-literacy users.')]):
+box(s, L, 2.15, 5.7, 4.45, '2A0D1C', SDG[10], 1.5)
+tile(s, L + 0.35, 2.5, 10, SDG[10], 1.0, 28)
+text(s, L + 1.6, 2.5, 3.9, 1.0, [(('MAJOR SDG  ·  TARGET 10.2', {'color': 'F06AA6', 'size': 10, 'bold': True}),), (('Reduced Inequalities', {'bold': True, 'size': 17}),)], anchor=MIDDLE, gap=2)
+text(s, L + 0.35, 3.75, 5.0, 0.6, 'These apps exploit the people left behind, financially and digitally. LoanShield serves them first.', size=12, color=INK, bold=True)
+text(s, L + 0.35, 4.5, 5.0, 2.0, ['•  Assisted help: a helper, a call-back or an SHG help desk', '•  Their language, read aloud: Tamil, Hindi, English', '•  No app, no sign-up: works on any cheap phone'], size=11.5, color='E8CCD9', gap=8)
+for i, (n, h, b) in enumerate([(1, 'No Poverty', 'Fair SHG loans and real-cost checks break the debt trap.'), (16, 'Peace & Justice', 'Sealed evidence and legal-aid help give victims access to justice.'), (8, 'Decent Work', 'Contact warnings keep threats away from employers.')]):
     x, y = 6.9, 2.15 + i * 1.55
     box(s, x, y, R - x, 1.35)
     tile(s, x + 0.25, y + 0.32, n, SDG[n], 0.7, 20)
     text(s, x + 1.2, y + 0.22, R - x - 1.4, 0.4, 'SDG ' + str(n) + '  ·  ' + h, size=13.5, bold=True)
     text(s, x + 1.2, y + 0.62, R - x - 1.4, 0.6, b, size=10.5, color=SOFT)
-notes(s, 'Lead with SDG 16: the core harm is intimidation and no access to justice, and that is what LoanShield attacks directly. SDGs 1, 8 and 10 are supported.')
+notes(s, 'Lead with SDG 10, target 10.2: empower and include everyone regardless of income or ability. These apps target the poorest and least digitally literate; LoanShield is designed for them first (assisted help, local languages, read aloud, no app). SDG 1, 16 and 8 are supporting goals. Line: "These apps exploit exactly the people who are left behind, financially and digitally. LoanShield is designed for them first, which is why SDG 10 is our main goal."')
 
 # ================= 18. Funding & partners =================
 s = frame('FUNDING & PARTNERS', 'Run with cyber-safety NGOs', 'br')
